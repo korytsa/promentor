@@ -1,5 +1,5 @@
 {
-  "name": "@promentor/ui-kit",
+  "name": "@promentorapp/ui-kit",
   "version": "0.1.0",
   "description": "MUI-based shared UI for ProMentor frontend apps",
   "type": "module",

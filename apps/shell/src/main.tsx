@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AppThemeProvider } from "@promentor/ui-kit";
+import { AppThemeProvider } from "@promentorapp/ui-kit";
 import { App } from "./app";
 import "./index.css";
 

@@ -1,5 +1,5 @@
-import type { UserRole } from "@promentor/types";
-import { Box, Typography } from "@promentor/ui-kit";
+import type { UserRole } from "@promentorapp/types";
+import { Box, Typography } from "@promentorapp/ui-kit";
 
 export function App() {
   const role: UserRole = "user";
