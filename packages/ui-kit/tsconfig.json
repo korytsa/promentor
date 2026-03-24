@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig/react-vite.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tsup.config.ts"]
+}
