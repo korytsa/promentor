@@ -18,7 +18,7 @@ export const Navigation = ({
   const getStyle = ({ isActive }: { isActive: boolean }) =>
     cn(
       isMobile
-        ? "px-4 py-3 rounded-xl text-md font-bold transition-all"
+        ? "px-4 py-3 rounded-xl text-sm font-bold transition-all"
         : "px-4 py-2 font-semibold text-sm tracking-wider uppercase transition-all duration-300 rounded-lg",
       isActive
         ? isMobile

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { Avatar } from "@/shared/ui/Avatar";
@@ -10,12 +10,33 @@ interface UserMenuProps {
 
 export const UserMenu = ({ user }: UserMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   return (
     <div className="relative flex items-center gap-x-4">
-      <div
+      <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-x-3 cursor-pointer group"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-controls="user-menu"
+        aria-label="User menu"
+        className="flex items-center gap-x-3 cursor-pointer group appearance-none border-none bg-transparent p-0"
       >
         <div className="hidden md:flex flex-col gap-1 text-right">
           <p className="text-[10px] font-black text-slate-500 tracking-widest uppercase">
@@ -27,7 +48,7 @@ export const UserMenu = ({ user }: UserMenuProps) => {
         </div>
 
         <Avatar src={user.avatarUrl} alt={user.fullName} size="md" />
-      </div>
+      </button>
 
       {isOpen && (
         <>
@@ -35,7 +56,11 @@ export const UserMenu = ({ user }: UserMenuProps) => {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-14 w-56 p-2 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-50 backdrop-blur-3xl overflow-hidden transition-all duration-200">
+          <div
+            id="user-menu"
+            role="menu"
+            className="absolute right-0 top-14 w-56 p-2 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-50 backdrop-blur-3xl overflow-hidden transition-all duration-200"
+          >
             <div className="px-3 py-2 border-b border-white/5 mb-2">
               <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">
                 Signed in as
