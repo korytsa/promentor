@@ -21,6 +21,8 @@ nvm use && corepack enable && pnpm install
 
 **CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `dev`: `pnpm format:check`, `lint`, `typecheck`, `build`.
 
+**CD:** shell — [`vercel.json`](vercel.json); API — [`railway.toml`](railway.toml).
+
 ## Env
 
 - Shell: `.env.example` → `apps/shell/.env` (`VITE_*` for browser).

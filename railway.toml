@@ -1,0 +1,16 @@
+# Builder: DOCKERFILE (Railway больше не использует Nixpacks; Railpack часто падает на монорепо).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.api"
+watchPatterns = [
+  "apps/api/**",
+  "Dockerfile.api",
+  "pnpm-lock.yaml",
+  "package.json",
+  "turbo.json",
+]
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+healthcheckPath = "/health"
