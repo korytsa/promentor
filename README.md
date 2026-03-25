@@ -19,7 +19,7 @@ nvm use && corepack enable && pnpm install
 
 **pre-commit:** lint-staged (ESLint + Prettier on staged files).
 
-**CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `develop`: `pnpm format:check`, `lint`, `typecheck`, `build`.
+**CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `dev`: `pnpm format:check`, `lint`, `typecheck`, `build`.
 
 ## Env
 
