@@ -1,0 +1,12 @@
+# Railway: pnpm monorepo → build only Nest API (Railpack не подходит для такого дерева).
+FROM node:20-alpine
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /app
+COPY . .
+
+RUN pnpm install --frozen-lockfile
+RUN pnpm exec turbo build --filter=api
+
+ENV NODE_ENV=production
+CMD ["node", "apps/api/dist/main.js"]

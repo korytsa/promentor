@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.turbo
+.git
+.vercel
+.cursor
+**/.env
+**/.env.*
+!.env.example
