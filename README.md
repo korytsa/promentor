@@ -4,7 +4,7 @@ Monorepo: **Nest** (`apps/api`), **Vite/React shell** (`apps/shell`), shared **`
 
 ## Setup
 
-Requirements: open the **repo root** in the editor, **Node** from `.nvmrc` / `engines`, **pnpm 9+** ([Corepack](https://nodejs.org/api/corepack.html) recommended).
+Requirements: open the **repo root** in the editor, **Node 20+** (see `engines` in root `package.json`), **pnpm 9+** ([Corepack](https://nodejs.org/api/corepack.html) recommended).
 
 ```bash
 nvm use && corepack enable && pnpm install
@@ -17,7 +17,11 @@ nvm use && corepack enable && pnpm install
 - `pnpm build` — all packages that define `build`.
 - `pnpm lint` · `pnpm typecheck` · `pnpm format` / `pnpm format:check`
 
-**pre-commit:** lint-staged (ESLint + Prettier on staged files). **CI:** run `lint`, `typecheck`, `format:check`.
+**pre-commit:** lint-staged (ESLint + Prettier on staged files).
+
+**CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `dev`: `pnpm format:check`, `lint`, `typecheck`, `build`.
+
+**CD:** shell — [`vercel.json`](vercel.json); API — [`railway.toml`](railway.toml).
 
 ## Env
 
