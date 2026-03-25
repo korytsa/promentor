@@ -1,16 +1,20 @@
-import type { UserRole } from "@promentorapp/types";
-import { Box, Typography } from "@promentorapp/ui-kit";
+import { BrowserRouter, Routes } from "react-router-dom";
+import { ShellLayout } from "@/widgets/layout";
 
 export function App() {
-  const role: UserRole = "user";
   return (
-    <Box className="flex min-h-dvh flex-col gap-2 p-4" data-user-role={role}>
-      <Typography variant="h4" component="h1">
-        ProMentor Shell
-      </Typography>
-      <p className="text-sm text-gray-600">
-        MUI + Tailwind (preflight off, CssBaseline from MUI).
-      </p>
-    </Box>
+    <BrowserRouter>
+      <ShellLayout>
+        <Routes>
+          {/* <Route path="/teams" element={<Teams />} /> */}
+          {/* <Route path="/boards" element={<Boards />} /> */}
+          {/* <Route path="/plans" element={<Plans />} /> */}
+          {/* <Route path="/chat" element={<Chat />} /> */}
+          {/* <Route path="/settings" element={<Settings />} /> */}
+          {/* <Route path="/profile" element={<Profile />} /> */}
+          {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+        </Routes>
+      </ShellLayout>
+    </BrowserRouter>
   );
 }
