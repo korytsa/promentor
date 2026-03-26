@@ -1,4 +1,10 @@
-export { AppThemeProvider, appTheme } from "./Theme";
+export {
+  AppThemeProvider,
+  appTheme,
+  createAppTheme,
+  useAppTheme,
+} from "./Theme";
+export type { AppThemeMode } from "./Theme";
 export { Box } from "@mui/material";
 export { Button } from "./Button";
 export type { PromentorButtonProps, ButtonCustomVariant } from "./Button";

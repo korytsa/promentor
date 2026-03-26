@@ -1,2 +1,3 @@
-export { AppThemeProvider } from "./AppThemeProvider";
-export { appTheme } from "./theme";
+export { AppThemeProvider, useAppTheme } from "./AppThemeProvider";
+export { appTheme, createAppTheme } from "./theme";
+export type { AppThemeMode } from "./theme";

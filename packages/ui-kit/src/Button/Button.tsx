@@ -33,20 +33,36 @@ export type PromentorButtonProps =
 
 const StyledIconButton = styled(MuiIconButton, {
   shouldForwardProp: (prop) => prop !== "customVariant",
-})<{ customVariant?: ButtonCustomVariant }>(({ customVariant }) => ({
+})<{ customVariant?: ButtonCustomVariant }>(({ customVariant, theme }) => ({
   ...(customVariant === "ghost" && {
-    color: "rgba(148, 163, 184, 1)",
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(148, 163, 184, 1)"
+        : "rgba(71, 85, 105, 1)",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(15, 23, 42, 0.06)",
     },
   }),
   ...(customVariant === "glass" && {
-    color: "#fff",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(255, 255, 255, 0.8)",
+    border:
+      theme.palette.mode === "dark"
+        ? "1px solid transparent"
+        : "1px solid rgba(148, 163, 184, 0.35)",
     borderRadius: "12px",
     transition: "all 0.2s",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.1)"
+          : "rgba(255, 255, 255, 1)",
     },
     padding: "8px",
   }),
@@ -63,21 +79,37 @@ const StyledIconButton = styled(MuiIconButton, {
 
 const StyledButton = styled(MuiButton, {
   shouldForwardProp: (prop) => prop !== "customVariant",
-})<{ customVariant?: ButtonCustomVariant }>(({ customVariant }) => ({
+})<{ customVariant?: ButtonCustomVariant }>(({ customVariant, theme }) => ({
   ...(customVariant === "ghost" && {
-    color: "rgba(148, 163, 184, 1)",
+    color:
+      theme.palette.mode === "dark"
+        ? "rgba(148, 163, 184, 1)"
+        : "rgba(71, 85, 105, 1)",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(15, 23, 42, 0.06)",
     },
     borderRadius: "8px",
   }),
   ...(customVariant === "glass" && {
-    color: "#fff",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(255, 255, 255, 0.8)",
+    border:
+      theme.palette.mode === "dark"
+        ? "1px solid transparent"
+        : "1px solid rgba(148, 163, 184, 0.35)",
     borderRadius: "12px",
     textTransform: "none",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255, 255, 255, 0.1)"
+          : "rgba(255, 255, 255, 1)",
     },
   }),
   ...(customVariant === "plain" && {
@@ -104,7 +136,7 @@ const StyledButton = styled(MuiButton, {
       backgroundColor: "transparent",
     },
     "&:hover .user-menu-trigger-title": {
-      color: "#fff",
+      color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
     },
   }),
   ...(customVariant === "menuItemDanger" && {

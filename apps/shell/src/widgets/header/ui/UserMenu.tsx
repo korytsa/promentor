@@ -1,9 +1,10 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
-import { Button, Avatar, Typography } from "@promentorapp/ui-kit";
+import { Button, Avatar, Typography, useAppTheme } from "@promentorapp/ui-kit";
 import type { User } from "@/entities/user";
 import { DropdownMenu } from "@/shared/ui/dropdown/DropdownMenu";
+import { cn } from "@/shared/lib/utils";
 
 interface UserMenuProps {
   user: User;
@@ -17,6 +18,7 @@ const MENU_LINKS = [
 
 export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
   const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
+  const { mode } = useAppTheme();
 
   return (
     <DropdownMenu
@@ -36,13 +38,19 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
           <div className="hidden md:flex flex-col gap-1 text-right">
             <Typography
               component="p"
-              className="text-[10px] font-black text-slate-500 tracking-widest uppercase"
+              className={cn(
+                "text-[10px] font-black tracking-widest uppercase",
+                mode === "dark" ? "text-slate-500" : "text-slate-500",
+              )}
             >
               Welcome,
             </Typography>
             <Typography
               component="h2"
-              className="user-menu-trigger-title text-xs uppercase font-bold text-white/80 transition-colors"
+              className={cn(
+                "user-menu-trigger-title text-xs uppercase font-bold transition-colors",
+                mode === "dark" ? "text-white/80" : "text-slate-700",
+              )}
             >
               {user.fullName}
             </Typography>
@@ -54,16 +62,27 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
     >
       {({ closeMenu }) => (
         <>
-          <div className="px-3 py-2 border-b border-white/5 mb-2">
+          <div
+            className={cn(
+              "px-3 py-2 border-b mb-2",
+              mode === "dark" ? "border-white/5" : "border-slate-200",
+            )}
+          >
             <Typography
               component="p"
-              className="text-[10px] font-bold text-slate-500 uppercase mb-1"
+              className={cn(
+                "text-[10px] font-bold uppercase mb-1",
+                mode === "dark" ? "text-slate-500" : "text-slate-500",
+              )}
             >
               Signed in as
             </Typography>
             <Typography
               component="p"
-              className="text-sm font-medium text-white truncate"
+              className={cn(
+                "text-sm font-medium truncate",
+                mode === "dark" ? "text-white" : "text-slate-900",
+              )}
             >
               {user.email}
             </Typography>
@@ -76,14 +95,29 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               to={to}
               onClick={closeMenu}
               role="menuitem"
-              className="w-full flex items-center gap-x-3 px-3 py-2.5 text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-all font-medium text-sm"
+              className={cn(
+                "w-full flex items-center gap-x-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm",
+                mode === "dark"
+                  ? "text-slate-300 hover:text-white hover:bg-white/5"
+                  : "text-slate-700 hover:text-slate-900 hover:bg-slate-100",
+              )}
             >
-              <Icon size={18} className="text-slate-500" />
+              <Icon
+                size={18}
+                className={cn(
+                  mode === "dark" ? "text-slate-500" : "text-slate-400",
+                )}
+              />
               {label}
             </Link>
           ))}
 
-          <div className="my-2 border-t border-white/5" />
+          <div
+            className={cn(
+              "my-2 border-t",
+              mode === "dark" ? "border-white/5" : "border-slate-200",
+            )}
+          />
 
           <Button
             variant="text"

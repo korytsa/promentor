@@ -1,10 +1,15 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, type PaletteMode } from "@mui/material/styles";
 
-export const appTheme = createTheme({
-  palette: {
-    mode: "light",
-  },
-  shape: {
-    borderRadius: 12,
-  },
-});
+export type AppThemeMode = PaletteMode;
+
+export const createAppTheme = (mode: AppThemeMode) =>
+  createTheme({
+    palette: {
+      mode,
+    },
+    shape: {
+      borderRadius: 12,
+    },
+  });
+
+export const appTheme = createAppTheme("light");

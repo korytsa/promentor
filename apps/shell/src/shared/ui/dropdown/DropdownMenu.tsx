@@ -6,6 +6,8 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useAppTheme } from "@promentorapp/ui-kit";
+import { cn } from "@/shared/lib/utils";
 
 interface DropdownMenuProps {
   id: string;
@@ -20,20 +22,27 @@ interface DropdownMenuProps {
   panelClassName?: string;
 }
 
-const defaultPanelClassName =
-  "absolute right-0 top-14 w-56 p-1 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200";
-
 export const DropdownMenu = ({
   id,
   trigger,
   children,
   firstMenuItemRef,
   containerClassName = "relative",
-  panelClassName = defaultPanelClassName,
+  panelClassName,
 }: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { mode } = useAppTheme();
+
+  const resolvedPanelClassName =
+    panelClassName ??
+    cn(
+      "absolute right-0 top-14 w-56 p-1 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200 border",
+      mode === "dark"
+        ? "bg-slate-800 border-white/5"
+        : "bg-white/95 border-slate-200 shadow-slate-300/40",
+    );
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -85,12 +94,20 @@ export const DropdownMenu = ({
           {typeof document !== "undefined" &&
             createPortal(
               <div
-                className="fixed inset-0 z-[40] bg-black/15 backdrop-blur-[1px]"
+                className={cn(
+                  "fixed inset-0 z-[40] backdrop-blur-[1px]",
+                  mode === "dark" ? "bg-black/15" : "bg-slate-900/5",
+                )}
                 aria-hidden="true"
               />,
               document.body,
             )}
-          <div id={id} ref={panelRef} role="menu" className={panelClassName}>
+          <div
+            id={id}
+            ref={panelRef}
+            role="menu"
+            className={resolvedPanelClassName}
+          >
             {children({ closeMenu })}
           </div>
         </>

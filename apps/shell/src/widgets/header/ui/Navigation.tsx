@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import type { NavItem } from "@/features/navigation-by-role";
 import { cn } from "@/shared/lib/utils";
+import { useAppTheme } from "@promentorapp/ui-kit";
 
 interface NavigationProps {
   items: NavItem[];
@@ -15,6 +16,8 @@ export const Navigation = ({
   onItemClick,
   isMobile,
 }: NavigationProps) => {
+  const { mode } = useAppTheme();
+
   const getStyle = ({ isActive }: { isActive: boolean }) =>
     cn(
       isMobile
@@ -22,9 +25,15 @@ export const Navigation = ({
         : "px-4 py-2 font-semibold text-sm tracking-wider uppercase transition-all duration-300 rounded-lg",
       isActive
         ? isMobile
-          ? "bg-blue-600/20 text-blue-400"
-          : "text-blue-500 bg-blue-500/10"
-        : "text-slate-400 hover:text-white hover:bg-slate-800/50",
+          ? mode === "dark"
+            ? "bg-blue-600/20 text-blue-400"
+            : "bg-blue-100 text-blue-700"
+          : mode === "dark"
+            ? "text-blue-500 bg-blue-500/10"
+            : "text-blue-700 bg-blue-100"
+        : mode === "dark"
+          ? "text-slate-400 hover:text-white hover:bg-slate-800/50"
+          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
     );
 
   return (
