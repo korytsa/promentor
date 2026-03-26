@@ -20,20 +20,21 @@ interface DropdownMenuProps {
   panelClassName?: string;
 }
 
-const defaultPanelClassName =
-  "absolute right-0 top-14 w-56 p-1 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200";
-
 export const DropdownMenu = ({
   id,
   trigger,
   children,
   firstMenuItemRef,
   containerClassName = "relative",
-  panelClassName = defaultPanelClassName,
+  panelClassName,
 }: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const resolvedPanelClassName =
+    panelClassName ??
+    "absolute right-0 top-14 w-56 p-1 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200 border bg-white/95 border-slate-200 shadow-slate-300/40 dark:bg-slate-800 dark:border-white/5 dark:shadow-xl";
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -85,12 +86,17 @@ export const DropdownMenu = ({
           {typeof document !== "undefined" &&
             createPortal(
               <div
-                className="fixed inset-0 z-[40] bg-black/15 backdrop-blur-[1px]"
+                className="fixed inset-0 z-[40] backdrop-blur-[1px] bg-slate-900/5 dark:bg-black/15"
                 aria-hidden="true"
               />,
               document.body,
             )}
-          <div id={id} ref={panelRef} role="menu" className={panelClassName}>
+          <div
+            id={id}
+            ref={panelRef}
+            role="menu"
+            className={resolvedPanelClassName}
+          >
             {children({ closeMenu })}
           </div>
         </>

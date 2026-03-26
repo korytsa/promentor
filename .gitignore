@@ -1,6 +1,9 @@
 node_modules
 dist
 .vercel
+.pnpm-store
+.vscode/*.local.bak
+packages/ui-kit/storybook-static
 .turbo
 *.local
 .DS_Store
