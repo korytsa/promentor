@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { getNavItems } from "@/entities/user/model/constants";
 import { UserRole } from "@/entities/user/types";
+
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
-import { Button } from "@promentorapp/ui-kit";
+import { Button, useAppTheme } from "@promentorapp/ui-kit";
 import { NotificationsButton } from "./NotificationsButton";
 
 interface HeaderProps {
@@ -14,10 +15,12 @@ interface HeaderProps {
 
 export const Header = ({ role }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { mode, toggleMode } = useAppTheme();
   const navItems = getNavItems(role);
+  const isDark = mode === "dark";
 
   return (
-    <header className="sticky top-0 z-50 py-3 px-6 border-b border-white/10">
+    <header className="sticky top-0 z-50 py-3 px-6 border-b transition-colors border-slate-200/90 dark:border-white/10">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
@@ -27,6 +30,29 @@ export const Header = ({ role }: HeaderProps) => {
         />
 
         <div className="flex items-center gap-x-4">
+          <Button
+            isIconOnly
+            customVariant="glass"
+            onClick={toggleMode}
+            aria-label={
+              mode === "dark" ? "Switch to light theme" : "Switch to dark theme"
+            }
+            title={
+              mode === "dark" ? "Switch to light theme" : "Switch to dark theme"
+            }
+            sx={{
+              color: isDark ? "rgba(148, 163, 184, 1)" : "#64748b",
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#ffffff",
+              "&:hover": {
+                backgroundColor: isDark
+                  ? "rgba(255, 255, 255, 0.12)"
+                  : "rgba(248, 250, 252, 1)",
+              },
+            }}
+          >
+            {mode === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          </Button>
+
           <NotificationsButton />
 
           <UserMenu
@@ -57,8 +83,7 @@ export const Header = ({ role }: HeaderProps) => {
         id="mobile-navigation"
         role="navigation"
         aria-label="Mobile Navigation"
-        className={`lg:hidden bg-slate-900 border-t border-white/5 mt-4 
-        ${isMobileMenuOpen ? "block" : "hidden"}`}
+        className={`lg:hidden border-t mt-4 bg-white border-slate-200 dark:bg-slate-900 dark:border-white/5 ${isMobileMenuOpen ? "block" : "hidden"}`}
       >
         <Navigation
           items={navItems}
