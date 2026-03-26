@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
-import { Avatar } from "@/shared/ui/Avatar";
+import { Avatar } from "@promentorapp/ui-kit";
 import { User } from "@/entities/user/types";
 
 interface UserMenuProps {

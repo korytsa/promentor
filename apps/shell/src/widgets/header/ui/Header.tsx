@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Menu, X, Bell } from "lucide-react";
-import { MOCK_USER, navItems } from "@/entities/user/model/constants";
+import { getNavItems } from "@/entities/user/model/constants";
+import { UserRole } from "@/entities/user/types";
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
 
-export const Header = () => {
+interface HeaderProps {
+  role: UserRole;
+}
+
+export const Header = ({ role }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navItems = getNavItems(role);
 
   return (
     <header className="sticky top-0 z-50 py-3 px-6 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
@@ -27,7 +33,14 @@ export const Header = () => {
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full" />
           </button>
 
-          <UserMenu user={MOCK_USER} />
+          <UserMenu
+            user={{
+              id: "viewer",
+              fullName: role === "MENTOR" ? "Mentor" : "Regular User",
+              role,
+              email: "user@promentor.local",
+            }}
+          />
 
           <button
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
