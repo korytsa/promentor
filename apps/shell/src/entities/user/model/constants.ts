@@ -1,4 +1,5 @@
-import { NavItem, UserRole } from "../types";
+import type { UserRole } from "../types";
+import type { NavItem } from "@/features/navigation-by-role";
 
 export const MENTOR_NAV_ITEMS: NavItem[] = [
   { label: "Teams", to: "/teams" },

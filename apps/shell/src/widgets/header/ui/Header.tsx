@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Menu, X, Bell } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { getNavItems } from "@/entities/user/model/constants";
 import { UserRole } from "@/entities/user/types";
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
+import { Button } from "@promentorapp/ui-kit";
+import { NotificationsButton } from "./NotificationsButton";
 
 interface HeaderProps {
   role: UserRole;
@@ -25,13 +27,7 @@ export const Header = ({ role }: HeaderProps) => {
         />
 
         <div className="flex items-center gap-x-4">
-          <button
-            aria-label="Notifications"
-            className="relative cursor-pointer text-slate-400 p-2 hover:bg-white/5 rounded-full transition-colors"
-          >
-            <Bell className="size-6" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full" />
-          </button>
+          <NotificationsButton />
 
           <UserMenu
             user={{
@@ -42,15 +38,18 @@ export const Header = ({ role }: HeaderProps) => {
             }}
           />
 
-          <button
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-navigation"
-            className="lg:hidden p-2 text-white bg-white/5 rounded-xl transition-all hover:bg-white/10"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="lg:hidden">
+            <Button
+              isIconOnly
+              customVariant="glass"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -58,9 +57,8 @@ export const Header = ({ role }: HeaderProps) => {
         id="mobile-navigation"
         role="navigation"
         aria-label="Mobile Navigation"
-        className={`lg:hidden bg-slate-900 border-t border-white/5 mt-4 ${
-          isMobileMenuOpen ? "block" : "hidden"
-        }`}
+        className={`lg:hidden bg-slate-900 border-t border-white/5 mt-4 
+        ${isMobileMenuOpen ? "block" : "hidden"}`}
       >
         <Navigation
           items={navItems}

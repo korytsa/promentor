@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { NavItem } from "@/entities/user/types";
+import type { NavItem } from "@/features/navigation-by-role";
 import { cn } from "@/shared/lib/utils";
 
 interface NavigationProps {
