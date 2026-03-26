@@ -16,3 +16,5 @@ export { Select } from "./Select";
 export type { SelectProps, SelectOption } from "./Select";
 export { Switch } from "./Switch";
 export type { SwitchProps } from "./Switch";
+export { Tabs } from "./Tabs";
+export type { TabsProps, TabsItem } from "./Tabs";
