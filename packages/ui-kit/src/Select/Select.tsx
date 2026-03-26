@@ -7,6 +7,7 @@ import {
   type SelectProps as MuiSelectProps,
 } from "@mui/material";
 import { forwardRef, useId } from "react";
+import { fieldControlSx } from "../Theme/fieldControlSx";
 
 export interface SelectOption {
   value: string | number;
@@ -23,37 +24,6 @@ export type SelectProps = Omit<MuiSelectProps, "variant" | "error"> & {
   placeholder?: string;
 };
 
-const controlSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 12,
-    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-    backgroundColor: "rgba(255, 255, 255, 0.98)",
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "primary.light",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderWidth: 2,
-    },
-    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-      borderColor: "error.main",
-    },
-  },
-  "& .MuiInputLabel-outlined": {
-    "&.Mui-focused": {
-      color: "primary.main",
-    },
-  },
-  "& .MuiFormHelperText-root": {
-    marginLeft: 0,
-    marginTop: 0.75,
-    fontSize: "0.8125rem",
-    lineHeight: 1.35,
-  },
-  "& .MuiFormHelperText-root.Mui-error": {
-    color: "error.main",
-  },
-};
-
 export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
   {
     label,
@@ -67,6 +37,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
     sx,
     id,
     labelId,
+    inputProps,
     children,
     ...props
   },
@@ -81,6 +52,9 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
       ? errorMessage
       : helperText;
   const shouldShowPlaceholder = Boolean(placeholder) && !label;
+  const computedAriaLabel =
+    inputProps?.["aria-label"] ??
+    (label ? undefined : placeholder ? String(placeholder) : "Select option");
 
   return (
     <FormControl
@@ -88,10 +62,10 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
       error={hasError}
       sx={
         Array.isArray(sx)
-          ? [controlSx, ...sx]
+          ? [fieldControlSx, ...sx]
           : sx
-            ? [controlSx, sx]
-            : controlSx
+            ? [fieldControlSx, sx]
+            : fieldControlSx
       }
     >
       {label ? <InputLabel id={selectLabelId}>{label}</InputLabel> : null}
@@ -101,6 +75,10 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
         labelId={label ? selectLabelId : undefined}
         label={label}
         displayEmpty={displayEmpty || shouldShowPlaceholder}
+        inputProps={{
+          ...inputProps,
+          ...(computedAriaLabel ? { "aria-label": computedAriaLabel } : {}),
+        }}
         {...props}
       >
         {shouldShowPlaceholder ? (

@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 
 export interface SwitchProps extends Omit<MuiSwitchProps, "color"> {
   label?: ReactNode;
+  ariaLabel?: string;
   helperText?: ReactNode;
   errorMessage?: ReactNode;
   color?: MuiSwitchProps["color"];
@@ -60,15 +61,21 @@ const StyledSwitch = styled(MuiSwitch)(({ theme }) => ({
 
 export const Switch = ({
   label,
+  ariaLabel,
   helperText,
   errorMessage,
   labelPlacement = "end",
   color = "primary",
   disabled,
+  inputProps,
   ...props
 }: SwitchProps) => {
   const hasError = Boolean(errorMessage);
   const helper = hasError ? errorMessage : helperText;
+  const computedAriaLabel =
+    ariaLabel ??
+    inputProps?.["aria-label"] ??
+    (typeof label === "string" ? label : "Toggle");
 
   return (
     <Box>
@@ -76,7 +83,14 @@ export const Switch = ({
         label={label}
         labelPlacement={labelPlacement}
         disabled={disabled}
-        control={<StyledSwitch color={color} disabled={disabled} {...props} />}
+        control={
+          <StyledSwitch
+            color={color}
+            disabled={disabled}
+            inputProps={{ ...inputProps, "aria-label": computedAriaLabel }}
+            {...props}
+          />
+        }
         sx={{
           m: 0,
           gap: 1.25,

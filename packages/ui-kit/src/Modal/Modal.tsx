@@ -9,7 +9,7 @@ import {
   type SxProps,
   type Theme,
 } from "@mui/material";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { Typography } from "../Typography";
 
 export interface ModalProps extends Omit<
@@ -38,12 +38,19 @@ export const Modal = ({
   contentSx,
   ...props
 }: ModalProps) => {
+  const generatedId = useId();
+  const titleId = `pm-modal-title-${generatedId}`;
+  const descriptionId = `pm-modal-text-${generatedId}`;
+  const handleClose = () => onClose?.();
+
   return (
     <Dialog
       open={open}
-      onClose={() => onClose?.()}
+      onClose={handleClose}
       maxWidth={maxWidth}
       fullWidth={fullWidth}
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={text ? descriptionId : undefined}
       slotProps={{
         backdrop: {
           sx: {
@@ -74,6 +81,7 @@ export const Modal = ({
             <Box minWidth={0}>
               {title && (
                 <Typography
+                  id={titleId}
                   variant="h6"
                   component="h2"
                   sx={{ lineHeight: 1.2 }}
@@ -85,7 +93,7 @@ export const Modal = ({
             {showCloseButton && (
               <IconButton
                 aria-label="Close modal"
-                onClick={() => onClose?.()}
+                onClick={handleClose}
                 size="medium"
                 sx={{ mt: -0.5, mr: -0.5, color: "text.secondary" }}
               >
@@ -108,7 +116,7 @@ export const Modal = ({
 
       <DialogContent sx={{ px: 3, pb: 3, pt: title ? 0.5 : 3, ...contentSx }}>
         {text ? (
-          <Typography variant="body2" color="text.secondary">
+          <Typography id={descriptionId} variant="body2" color="text.secondary">
             {text}
           </Typography>
         ) : null}

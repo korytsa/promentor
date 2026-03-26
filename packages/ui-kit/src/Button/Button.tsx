@@ -22,12 +22,13 @@ export type PromentorButtonProps =
       variant?: MuiButtonProps["variant"];
       color?: MuiButtonProps["color"];
     })
-  | (Omit<MuiIconButtonProps, "color"> & {
+  | (Omit<MuiIconButtonProps, "color" | "aria-label"> & {
       isIconOnly: true;
       children?: ReactNode;
       customVariant?: ButtonCustomVariant;
       variant?: never;
       color?: MuiIconButtonProps["color"];
+      "aria-label": string;
     });
 
 const StyledIconButton = styled(MuiIconButton, {

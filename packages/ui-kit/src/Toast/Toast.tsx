@@ -36,16 +36,18 @@ export const Toast = ({
   alertSx,
   ...props
 }: ToastProps) => {
+  const handleClose = () => onClose?.();
+
   return (
     <Snackbar
       open={open}
-      onClose={() => onClose?.()}
+      onClose={handleClose}
       autoHideDuration={autoHideDuration}
       anchorOrigin={anchorOrigin}
       {...props}
     >
       <Alert
-        onClose={() => onClose?.()}
+        onClose={handleClose}
         severity={tone}
         variant={alertVariant}
         sx={{
