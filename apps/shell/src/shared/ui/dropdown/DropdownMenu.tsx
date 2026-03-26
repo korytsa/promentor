@@ -33,6 +33,7 @@ export const DropdownMenu = ({
 }: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -60,7 +61,7 @@ export const DropdownMenu = ({
       if (
         triggerRef.current &&
         !triggerRef.current.contains(target) &&
-        !document.getElementById(id)?.contains(target)
+        !panelRef.current?.contains(target)
       ) {
         setIsOpen(false);
       }
@@ -89,7 +90,7 @@ export const DropdownMenu = ({
               />,
               document.body,
             )}
-          <div id={id} role="menu" className={panelClassName}>
+          <div id={id} ref={panelRef} role="menu" className={panelClassName}>
             {children({ closeMenu })}
           </div>
         </>

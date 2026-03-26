@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { MOCK_USER, navItems } from "@/entities/user/model/constants";
+import { getNavItemsByRole } from "@/features/navigation-by-role";
+import { MOCK_USER } from "@/features/viewer-session";
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
@@ -9,6 +10,7 @@ import { NotificationsButton } from "./NotificationsButton";
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navItems = getNavItemsByRole(MOCK_USER.role);
 
   return (
     <header className="sticky top-0 z-50 py-3 px-6 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">

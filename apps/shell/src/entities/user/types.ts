@@ -7,9 +7,3 @@ export interface User {
   role: UserRole;
   email: string;
 }
-
-export interface NavItem {
-  label: string;
-  to: string;
-  icon?: string;
-}

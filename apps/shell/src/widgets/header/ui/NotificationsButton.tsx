@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@promentorapp/ui-kit";
 import { DropdownMenu } from "@/shared/ui/dropdown/DropdownMenu";
@@ -11,13 +10,10 @@ export interface NotificationsButtonProps {
 export const NotificationsButton = ({
   hasUnread = true,
 }: NotificationsButtonProps) => {
-  const firstMenuItemRef = useRef<HTMLButtonElement>(null);
-
   return (
     <DropdownMenu
       id="notifications-menu"
       containerClassName="relative flex items-center gap-x-4"
-      firstMenuItemRef={firstMenuItemRef}
       trigger={({ isOpen, onToggle, triggerRef }) => (
         <Button
           ref={triggerRef}
@@ -38,7 +34,7 @@ export const NotificationsButton = ({
         </Button>
       )}
     >
-      {() => (
+      {({ closeMenu }) => (
         <div className="flex flex-col">
           <div className="p-2 text-sm font-semibold text-slate-200">
             Notifications
@@ -47,6 +43,7 @@ export const NotificationsButton = ({
           <div className="flex flex-col gap-y-1">
             <Link
               to="/notifications"
+              onClick={closeMenu}
               className="w-full text-left flex flex-col gap-y-1 px-2 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-all text-sm"
             >
               <span className="font-medium">New notification!</span>

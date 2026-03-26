@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { Button, Avatar, Typography } from "@promentorapp/ui-kit";
-import { User } from "@/entities/user/types";
+import type { User } from "@/entities/user";
 import { DropdownMenu } from "@/shared/ui/dropdown/DropdownMenu";
 
 interface UserMenuProps {
