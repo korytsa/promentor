@@ -10,3 +10,5 @@ export { TextField } from "./TextField";
 export type { TextFieldProps } from "./TextField";
 export { Modal } from "./Modal";
 export type { ModalProps } from "./Modal";
+export { Toast } from "./Toast";
+export type { ToastProps } from "./Toast";
