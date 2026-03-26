@@ -7,7 +7,6 @@ import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
 import { Button, useAppTheme } from "@promentorapp/ui-kit";
 import { NotificationsButton } from "./NotificationsButton";
-import { cn } from "@/shared/lib/utils";
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,14 +15,7 @@ export const Header = () => {
   const isDark = mode === "dark";
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 py-3 px-6 border-b backdrop-blur-xl transition-colors",
-        isDark
-          ? "border-white/10 bg-slate-900/80"
-          : "border-slate-200/90 bg-white/80",
-      )}
-    >
+    <header className="sticky top-0 z-50 py-3 px-6 border-b backdrop-blur-xl transition-colors border-slate-200/90 bg-white/80 dark:border-white/10 dark:bg-slate-900/80">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
@@ -79,11 +71,7 @@ export const Header = () => {
         id="mobile-navigation"
         role="navigation"
         aria-label="Mobile Navigation"
-        className={cn(
-          "lg:hidden border-t mt-4",
-          isDark ? "bg-slate-900 border-white/5" : "bg-white border-slate-200",
-          isMobileMenuOpen ? "block" : "hidden",
-        )}
+        className={`lg:hidden border-t mt-4 bg-white border-slate-200 dark:bg-slate-900 dark:border-white/5 ${isMobileMenuOpen ? "block" : "hidden"}`}
       >
         <Navigation
           items={navItems}

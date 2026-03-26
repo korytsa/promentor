@@ -6,8 +6,6 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { useAppTheme } from "@promentorapp/ui-kit";
-import { cn } from "@/shared/lib/utils";
 
 interface DropdownMenuProps {
   id: string;
@@ -33,16 +31,10 @@ export const DropdownMenu = ({
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { mode } = useAppTheme();
 
   const resolvedPanelClassName =
     panelClassName ??
-    cn(
-      "absolute right-0 top-14 w-56 p-1 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200 border",
-      mode === "dark"
-        ? "bg-slate-800 border-white/5"
-        : "bg-white/95 border-slate-200 shadow-slate-300/40",
-    );
+    "absolute right-0 top-14 w-56 p-1 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200 border bg-white/95 border-slate-200 shadow-slate-300/40 dark:bg-slate-800 dark:border-white/5 dark:shadow-xl";
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -94,10 +86,7 @@ export const DropdownMenu = ({
           {typeof document !== "undefined" &&
             createPortal(
               <div
-                className={cn(
-                  "fixed inset-0 z-[40] backdrop-blur-[1px]",
-                  mode === "dark" ? "bg-black/15" : "bg-slate-900/5",
-                )}
+                className="fixed inset-0 z-[40] backdrop-blur-[1px] bg-slate-900/5 dark:bg-black/15"
                 aria-hidden="true"
               />,
               document.body,

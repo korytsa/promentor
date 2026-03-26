@@ -50,6 +50,7 @@ export function AppThemeProvider({ children }: AppThemeProviderProps) {
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, mode);
     document.documentElement.setAttribute("data-theme", mode);
+    document.documentElement.classList.toggle("dark", mode === "dark");
   }, [mode]);
 
   const contextValue = useMemo<AppThemeContextValue>(
