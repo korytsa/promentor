@@ -18,3 +18,5 @@ export { Switch } from "./Switch";
 export type { SwitchProps } from "./Switch";
 export { Tabs } from "./Tabs";
 export type { TabsProps, TabsItem } from "./Tabs";
+export { Loader } from "./Loader";
+export type { LoaderProps, LoaderSize } from "./Loader";
