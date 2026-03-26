@@ -2,6 +2,12 @@
 
 Monorepo: **Nest** (`apps/api`), **Vite/React shell** (`apps/shell`), shared **`packages/*`**. **pnpm** workspaces + **Turborepo**.
 
+## Repositories
+
+- [promentor](https://github.com/korytsa/promentor)
+- [promentor-chat](https://github.com/korytsa/promentor-chat)
+- [promentor-coaching](https://github.com/korytsa/promentor-coaching)
+
 ## Setup
 
 Requirements: open the **repo root** in the editor, **Node 20+** (see `engines` in root `package.json`), **pnpm 9+** ([Corepack](https://nodejs.org/api/corepack.html) recommended).
