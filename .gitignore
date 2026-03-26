@@ -3,8 +3,10 @@ dist
 .vercel
 .turbo
 *.local
+*.local.bak
 .DS_Store
 .env
 .env.*
 !.env.example
 apps/*/.env
+packages/ui-kit/storybook-static/
