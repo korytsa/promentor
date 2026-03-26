@@ -1,6 +1,10 @@
-export { AppThemeProvider } from "./AppThemeProvider";
-export { appTheme } from "./theme";
+export { AppThemeProvider, appTheme } from "./Theme";
 export { Box } from "@mui/material";
 export { Button } from "./Button";
+export type { PromentorButtonProps, ButtonCustomVariant } from "./Button";
 export { Avatar } from "./Avatar";
+export type { AvatarProps } from "./Avatar";
 export { Typography } from "./Typography";
+export type { PromentorTypographyProps } from "./Typography";
+export { TextField } from "./TextField";
+export type { TextFieldProps } from "./TextField";

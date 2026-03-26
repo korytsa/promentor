@@ -4,4 +4,7 @@ export const appTheme = createTheme({
   palette: {
     mode: "light",
   },
+  shape: {
+    borderRadius: 12,
+  },
 });
