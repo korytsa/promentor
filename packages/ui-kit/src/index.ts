@@ -14,3 +14,5 @@ export { Toast } from "./Toast";
 export type { ToastProps } from "./Toast";
 export { Select } from "./Select";
 export type { SelectProps, SelectOption } from "./Select";
+export { Switch } from "./Switch";
+export type { SwitchProps } from "./Switch";
