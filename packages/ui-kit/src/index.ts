@@ -8,3 +8,5 @@ export { Typography } from "./Typography";
 export type { PromentorTypographyProps } from "./Typography";
 export { TextField } from "./TextField";
 export type { TextFieldProps } from "./TextField";
+export { Modal } from "./Modal";
+export type { ModalProps } from "./Modal";
