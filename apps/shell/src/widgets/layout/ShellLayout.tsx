@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { UserRole } from "@/entities/user/types";
+import { AppBackground } from "@/shared/ui";
 import { Header } from "../header";
 
 interface ShellLayoutProps {
@@ -9,10 +10,14 @@ interface ShellLayoutProps {
 
 export const ShellLayout = ({ children, role }: ShellLayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-900">
-      <Header role={role} />
+    <AppBackground>
+      <div className="flex flex-col min-h-screen">
+        <Header role={role} />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto py-8">{children}</main>
-    </div>
+        <main className="flex-1 w-full max-w-7xl mx-auto lg:px-0 p-4 lg:py-8">
+          {children}
+        </main>
+      </div>
+    </AppBackground>
   );
 };

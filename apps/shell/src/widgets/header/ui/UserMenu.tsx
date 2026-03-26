@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { Button, Typography, Avatar } from "@promentorapp/ui-kit";
 import type { User } from "@/entities/user/types";
-import { DropdownMenu } from "@/shared/ui/dropdown/DropdownMenu";
+import { DropdownMenu } from "@/shared/ui/DropdownMenu";
 
 interface UserMenuProps {
   user: User;

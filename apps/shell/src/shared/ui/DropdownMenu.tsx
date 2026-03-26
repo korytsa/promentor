@@ -21,7 +21,7 @@ interface DropdownMenuProps {
 }
 
 const defaultPanelClassName =
-  "absolute right-0 top-14 w-56 p-1 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-[70] backdrop-blur-3xl overflow-hidden transition-all duration-200";
+  "absolute right-0 top-14 w-56 p-1 bg-slate-800 border border-white/5 rounded-lg shadow-xl z-[200] backdrop-blur-3xl overflow-hidden";
 
 export const DropdownMenu = ({
   id,
@@ -84,10 +84,9 @@ export const DropdownMenu = ({
         <>
           {typeof document !== "undefined" &&
             createPortal(
-              <div
-                className="fixed inset-0 z-[40] bg-black/15 backdrop-blur-[1px]"
-                aria-hidden="true"
-              />,
+              <>
+                <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+              </>,
               document.body,
             )}
           <div id={id} ref={panelRef} role="menu" className={panelClassName}>

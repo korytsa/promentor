@@ -2,8 +2,8 @@ import { Navigate, useParams } from "react-router-dom";
 import { UserRole } from "@/entities/user/types";
 import { AuthCard, RegisterForm } from "@/features/auth";
 import { RegisterFormValues } from "@/features/auth/model/schema";
+import { AppBackground } from "@/shared/ui";
 import { getRoleFromParam } from "./lib/role";
-import { AuthBackground } from "./ui/AuthBackground";
 
 interface RegisterPageProps {
   onRegister: (role: UserRole, values: RegisterFormValues) => void;
@@ -22,13 +22,13 @@ export const RegisterPage = ({
   }
 
   return (
-    <AuthBackground>
+    <AppBackground contentClassName="min-h-screen flex items-center justify-center px-4 py-10">
       <AuthCard role={parsedRole} mode="register">
         <RegisterForm
           onSubmit={(values) => onRegister(parsedRole, values)}
           onGoogleRegister={() => onGoogleRegister(parsedRole)}
         />
       </AuthCard>
-    </AuthBackground>
+    </AppBackground>
   );
 };

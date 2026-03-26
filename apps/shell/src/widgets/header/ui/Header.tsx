@@ -17,7 +17,7 @@ export const Header = ({ role }: HeaderProps) => {
   const navItems = getNavItems(role);
 
   return (
-    <header className="sticky top-0 z-50 py-3 px-6 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 py-3 px-6 border-b border-white/10">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
