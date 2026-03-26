@@ -1,6 +1,6 @@
 import { Bell } from "lucide-react";
 import { Button } from "@promentorapp/ui-kit";
-import { DropdownMenu } from "@/shared/ui/dropdown/DropdownMenu";
+import { DropdownMenu } from "@/shared/ui/DropdownMenu";
 import { Link } from "react-router-dom";
 
 export interface NotificationsButtonProps {

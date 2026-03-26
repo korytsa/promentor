@@ -1,21 +1,26 @@
 import { useState } from "react";
 import { Menu, Moon, Sun, X } from "lucide-react";
-import { getNavItemsByRole } from "@/features/navigation-by-role";
-import { MOCK_USER } from "@/features/viewer-session";
+import { getNavItems } from "@/entities/user/model/constants";
+import { UserRole } from "@/entities/user/types";
+
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
 import { Button, useAppTheme } from "@promentorapp/ui-kit";
 import { NotificationsButton } from "./NotificationsButton";
 
-export const Header = () => {
+interface HeaderProps {
+  role: UserRole;
+}
+
+export const Header = ({ role }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mode, toggleMode } = useAppTheme();
-  const navItems = getNavItemsByRole(MOCK_USER.role);
+  const navItems = getNavItems(role);
   const isDark = mode === "dark";
 
   return (
-    <header className="sticky top-0 z-50 py-3 px-6 border-b backdrop-blur-xl transition-colors border-slate-200/90 bg-white/80 dark:border-white/10 dark:bg-slate-900/80">
+    <header className="sticky top-0 z-50 py-3 px-6 border-b transition-colors border-slate-200/90 dark:border-white/10">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
@@ -50,7 +55,14 @@ export const Header = () => {
 
           <NotificationsButton />
 
-          <UserMenu user={MOCK_USER} />
+          <UserMenu
+            user={{
+              id: "viewer",
+              fullName: role === "MENTOR" ? "Mentor" : "Regular User",
+              role,
+              email: "user@promentor.local",
+            }}
+          />
 
           <div className="lg:hidden">
             <Button

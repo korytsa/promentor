@@ -86,7 +86,7 @@ export const DropdownMenu = ({
           {typeof document !== "undefined" &&
             createPortal(
               <div
-                className="fixed inset-0 z-[40] backdrop-blur-[1px] bg-slate-900/5 dark:bg-black/15"
+                className="fixed inset-0 backdrop-blur-[1px] bg-slate-900/5 dark:bg-black/30"
                 aria-hidden="true"
               />,
               document.body,

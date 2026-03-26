@@ -1,4 +1,9 @@
-import { forwardRef, type ReactNode } from "react";
+import {
+  forwardRef,
+  type ForwardRefExoticComponent,
+  type ReactNode,
+  type RefAttributes,
+} from "react";
 import {
   Button as MuiButton,
   IconButton as MuiIconButton,
@@ -12,7 +17,9 @@ export type ButtonCustomVariant =
   | "glass"
   | "plain"
   | "menuTrigger"
-  | "menuItemDanger";
+  | "menuItemDanger"
+  | "authPrimary"
+  | "authGlass";
 
 export type PromentorButtonProps =
   | (Omit<MuiButtonProps, "variant" | "color"> & {
@@ -112,6 +119,36 @@ const StyledButton = styled(MuiButton, {
           : "rgba(255, 255, 255, 1)",
     },
   }),
+  ...(customVariant === "authPrimary" && {
+    height: "48px",
+    borderRadius: "12px",
+    textTransform: "none",
+    fontWeight: 900,
+    letterSpacing: "0.03em",
+    color: "#0f172a",
+    backgroundImage: "linear-gradient(to right, #22d3ee, #3b82f6)",
+    boxShadow: "0 16px 40px rgba(56, 189, 248, 0.34)",
+    "&:hover": {
+      backgroundImage: "linear-gradient(to right, #67e8f9, #60a5fa)",
+    },
+  }),
+  ...(customVariant === "authGlass" && {
+    height: "48px",
+    borderRadius: "12px",
+    textTransform: "none",
+    fontWeight: 600,
+    color: "#f1f5f9",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.09)",
+      border: "1px solid rgba(255, 255, 255, 0.35)",
+    },
+  }),
   ...(customVariant === "plain" && {
     padding: 0,
     minWidth: 0,
@@ -160,7 +197,7 @@ const StyledButton = styled(MuiButton, {
   }),
 }));
 
-export const Button = forwardRef<HTMLButtonElement, PromentorButtonProps>(
+const ButtonBase = forwardRef<HTMLButtonElement, PromentorButtonProps>(
   (props, ref) => {
     if (props.isIconOnly) {
       const { customVariant, children, ...rest } = props;
@@ -184,5 +221,11 @@ export const Button = forwardRef<HTMLButtonElement, PromentorButtonProps>(
     );
   },
 );
+
+ButtonBase.displayName = "ButtonBase";
+
+export const Button: ForwardRefExoticComponent<
+  PromentorButtonProps & RefAttributes<HTMLButtonElement>
+> = ButtonBase;
 
 Button.displayName = "Button";
