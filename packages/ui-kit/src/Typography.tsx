@@ -25,7 +25,7 @@ const variantStyleClasses: Record<TypographyVariantStyle, string> = {
   caption: "text-xs text-slate-400",
   muted: "text-slate-400",
   error: "text-xs text-rose-400",
-  eyebrow: "text-xs uppercase tracking-[0.26em] text-cyan-300 font-semibold",
+  eyebrow: "uppercase tracking-wide text-cyan-300 font-semibold",
 };
 
 const withClasses = (...values: Array<string | undefined>) =>

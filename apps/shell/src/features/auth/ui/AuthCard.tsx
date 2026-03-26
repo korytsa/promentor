@@ -18,9 +18,9 @@ export const AuthCard = ({ role, mode, children }: AuthCardProps) => {
     mode === "login" ? "Create account" : "I already have an account";
 
   return (
-    <section className="w-full max-w-xl rounded-[2rem] border border-white/15 bg-slate-950/55 p-7 md:p-8 shadow-[0_30px_100px_rgba(6,182,212,0.2)] backdrop-blur-2xl">
-      <Typography variantStyle="eyebrow">PROMENTOR PLATFORM</Typography>
-      <Typography variantStyle="title" className="mt-3 text-3xl md:text-4xl">
+    <section className="w-full max-w-xl rounded-3xl border border-white/15 bg-slate-950/55 p-7 md:p-8 shadow-[0_30px_100px_rgba(6,182,212,0.2)] backdrop-blur-2xl">
+      <Typography variantStyle="eyebrow">PROMENTOR</Typography>
+      <Typography variantStyle="title" className="mt-3 text-3xl">
         {mode === "login" ? "Welcome back" : "Create your account"}
       </Typography>
       <Typography variantStyle="body" className="mt-3">
