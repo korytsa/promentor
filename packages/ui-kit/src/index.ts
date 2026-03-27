@@ -1,3 +1,33 @@
-export { AppThemeProvider } from "./AppThemeProvider";
-export { appTheme } from "./theme";
-export { Box, Typography } from "@mui/material";
+export {
+  AppThemeProvider,
+  appTheme,
+  createAppTheme,
+  useAppTheme,
+} from "./Theme";
+export type { AppThemeMode } from "./Theme";
+export { Box } from "@mui/material";
+export { Button } from "./Button";
+export type { PromentorButtonProps, ButtonCustomVariant } from "./Button";
+export { Button as default } from "./Button";
+export { Avatar } from "./Avatar";
+export type { AvatarProps } from "./Avatar";
+export type { AvatarProps as PromentorAvatarProps } from "./Avatar";
+export { Typography } from "./Typography";
+export type {
+  PromentorTypographyProps,
+  TypographyVariantStyle,
+} from "./Typography";
+export { TextField } from "./TextField";
+export type { TextFieldProps } from "./TextField";
+export { Modal } from "./Modal";
+export type { ModalProps } from "./Modal";
+export { Toast } from "./Toast";
+export type { ToastProps } from "./Toast";
+export { Select } from "./Select";
+export type { SelectProps, SelectOption } from "./Select";
+export { Switch } from "./Switch";
+export type { SwitchProps } from "./Switch";
+export { Tabs } from "./Tabs";
+export type { TabsProps, TabsItem } from "./Tabs";
+export { Loader } from "./Loader";
+export type { LoaderProps, LoaderSize } from "./Loader";

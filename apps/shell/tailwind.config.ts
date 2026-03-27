@@ -6,8 +6,10 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui-kit/src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
+  important: true,
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
   theme: {
     extend: {},
