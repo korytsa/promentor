@@ -53,8 +53,7 @@ const fetchUserProfile = async (token: string): Promise<User> => {
     return devUser;
   }
 
-  // TODO(auth): align /auth/profile endpoint with backend contract once auth module is implemented.
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/profile`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
