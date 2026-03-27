@@ -1,15 +1,14 @@
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Component, type ReactNode, Suspense, lazy, useState } from "react";
+import { Component, type ReactNode, Suspense, lazy, useEffect } from "react";
 import { UserRole } from "@/entities/user/types";
 import { ShellLayout } from "@/widgets/layout";
 import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
+import { useAuthStore } from "@/features/auth";
 import {
   LoginFormValues,
   RegisterFormValues,
 } from "@/features/auth/model/schema";
 
-const AUTH_SESSION_KEY = "pm_auth";
-const ROLE_SESSION_KEY = "pm_role";
 const AUTH_REDIRECT_PATH = "/login/mentor";
 
 const ChatWidget = lazy(() => import("chatApp/Widget"));
@@ -39,33 +38,30 @@ class RemoteErrorBoundary extends Component<
   }
 }
 
-const getStoredRole = (): UserRole => {
-  return sessionStorage.getItem(ROLE_SESSION_KEY) === "MENTOR"
-    ? "MENTOR"
-    : "REGULAR_USER";
-};
-
 export function App() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    sessionStorage.getItem(AUTH_SESSION_KEY) === "1",
-  );
-  const [role, setRole] = useState<UserRole>(getStoredRole());
+  const { user, isAuthenticated, isInitializing, initializeAuth, authorize } =
+    useAuthStore();
 
-  const authorize = (nextRole: UserRole) => {
-    sessionStorage.setItem(AUTH_SESSION_KEY, "1");
-    sessionStorage.setItem(ROLE_SESSION_KEY, nextRole);
-    setIsAuthenticated(true);
-    setRole(nextRole);
-    navigate("/", { replace: true });
-  };
+  useEffect(() => {
+    void initializeAuth();
+  }, [initializeAuth]);
+
+  const role: UserRole = user?.role ?? "REGULAR_USER";
 
   const handleAuthWithValues = (
     nextRole: UserRole,
     values: LoginFormValues | RegisterFormValues,
   ) => {
-    void values;
-    authorize(nextRole);
+    void authorize(nextRole, values).then(() => {
+      navigate("/", { replace: true });
+    });
+  };
+
+  const handleGoogleAuth = (nextRole: UserRole) => {
+    void authorize(nextRole).then(() => {
+      navigate("/", { replace: true });
+    });
   };
 
   const homeRouteElement = isAuthenticated ? (
@@ -102,6 +98,10 @@ export function App() {
     <Navigate to={AUTH_REDIRECT_PATH} replace />
   );
 
+  if (isInitializing) {
+    return <div style={{ padding: 16 }}>Initializing auth...</div>;
+  }
+
   return (
     <Routes>
       <Route path="/" element={homeRouteElement} />
@@ -110,7 +110,10 @@ export function App() {
       <Route
         path="/login/:role"
         element={
-          <LoginPage onLogin={handleAuthWithValues} onGoogleLogin={authorize} />
+          <LoginPage
+            onLogin={handleAuthWithValues}
+            onGoogleLogin={handleGoogleAuth}
+          />
         }
       />
       <Route
@@ -118,7 +121,7 @@ export function App() {
         element={
           <RegisterPage
             onRegister={handleAuthWithValues}
-            onGoogleRegister={authorize}
+            onGoogleRegister={handleGoogleAuth}
           />
         }
       />
