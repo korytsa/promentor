@@ -2,6 +2,7 @@ node_modules
 dist
 .vercel
 .turbo
+.pnpm-store/
 *.local
 *.local.bak
 .DS_Store
