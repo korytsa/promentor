@@ -21,6 +21,8 @@ nvm use && corepack enable && pnpm install
 - `pnpm dev` — shell + API (libraries build first when needed).
 - `pnpm dev:web` / `pnpm dev:api` — only shell or only API.
 - `pnpm build` — all packages that define `build`.
+- `pnpm --filter @promentorapp/ui-kit storybook` — run Storybook locally for `ui-kit` (default: `http://localhost:6006`).
+- `pnpm --filter @promentorapp/ui-kit build-storybook` — static Storybook build.
 - `pnpm lint` · `pnpm typecheck` · `pnpm format` / `pnpm format:check`
 
 **pre-commit:** lint-staged (ESLint + Prettier on staged files).
@@ -28,6 +30,11 @@ nvm use && corepack enable && pnpm install
 **CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `dev`: `pnpm format:check`, `lint`, `typecheck`, `build`.
 
 **CD:** shell — [`vercel.json`](vercel.json); API — [`railway.toml`](railway.toml).
+
+### Deploy hosts
+
+- Shell (Vercel): [https://promentor-alpha.vercel.app](https://promentor-alpha.vercel.app)
+- API (Railway): [https://promentor-production.up.railway.app](https://promentor-production.up.railway.app)
 
 ## Env
 
