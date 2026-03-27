@@ -5,9 +5,12 @@ dist
 .vscode/*.local.bak
 packages/ui-kit/storybook-static
 .turbo
+.pnpm-store/
 *.local
+*.local.bak
 .DS_Store
 .env
 .env.*
 !.env.example
 apps/*/.env
+packages/ui-kit/storybook-static/
