@@ -2,6 +2,12 @@
 
 Monorepo: **Nest** (`apps/api`), **Vite/React shell** (`apps/shell`), shared **`packages/*`**. **pnpm** workspaces + **Turborepo**.
 
+## Repositories
+
+- [promentor](https://github.com/korytsa/promentor)
+- [promentor-chat](https://github.com/korytsa/promentor-chat)
+- [promentor-coaching](https://github.com/korytsa/promentor-coaching)
+
 ## Setup
 
 Requirements: open the **repo root** in the editor, **Node 20+** (see `engines` in root `package.json`), **pnpm 9+** ([Corepack](https://nodejs.org/api/corepack.html) recommended).
@@ -24,6 +30,43 @@ nvm use && corepack enable && pnpm install
 **CI:** [GitHub Actions](.github/workflows/ci.yml) on push and pull requests to `main` and `dev`: `pnpm format:check`, `lint`, `typecheck`, `build`.
 
 **CD:** shell — [`vercel.json`](vercel.json); API — [`railway.toml`](railway.toml).
+
+## Microfrontend local check
+
+### 1) Run remotes
+
+For stable federation checks (close to production), run remotes with dedicated scripts:
+
+```bash
+# in promentor-chat
+pnpm mf:serve
+
+# in promentor-coaching
+pnpm mf:serve
+```
+
+`mf:serve` runs `build + preview` under the hood and serves `assets/remoteEntry.js` on fixed ports.
+`pnpm dev` is fine for working on the remote app itself, but for shell federation integration checks use `mf:serve`.
+
+### 2) Run host
+
+```bash
+# in promentor
+pnpm dev:web
+```
+
+### 3) Check endpoints and routes
+
+- `http://localhost:4174/assets/remoteEntry.js`
+- `http://localhost:4175/assets/remoteEntry.js`
+- shell routes: `/chat` and `/coaching`
+
+### Remote contract (do not break without host update)
+
+- Chat remote: `name: "chatApp"`, exposed module: `./Widget`, import path in shell: `chatApp/Widget`.
+- Coaching remote: `name: "coachingApp"`, exposed module: `./Widget`, import path in shell: `coachingApp/Widget`.
+- Exposed module must keep default export as a React component.
+- `react` and `react-dom` versions must stay compatible between host and remotes.
 
 ### Deploy hosts
 
