@@ -1,5 +1,5 @@
 {
-  "installCommand": "corepack enable && corepack prepare pnpm@10.17.1 --activate && pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm build-storybook",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build-storybook",
   "outputDirectory": "storybook-static"
 }
