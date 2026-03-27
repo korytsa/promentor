@@ -6,6 +6,7 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
+  // TODO(mf): replace localhost defaults with deployed remoteEntry URLs in environment config.
   const chatRemoteUrl =
     env.VITE_CHAT_REMOTE_URL || "http://localhost:4174/assets/remoteEntry.js";
   const coachingRemoteUrl =

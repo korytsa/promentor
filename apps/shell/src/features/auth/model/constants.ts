@@ -1,6 +1,8 @@
 import { UserRole } from "@/entities/user/types";
 import { AuthRoleOption } from "./types";
 
+export const AUTH_TOKEN_KEY = "pm_auth_token";
+
 export const AUTH_ROLES: AuthRoleOption[] = [
   {
     role: "MENTOR",
