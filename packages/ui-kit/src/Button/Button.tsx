@@ -200,7 +200,8 @@ const StyledButton = styled(MuiButton, {
 const ButtonBase = forwardRef<HTMLButtonElement, PromentorButtonProps>(
   (props, ref) => {
     if (props.isIconOnly) {
-      const { customVariant, children, ...rest } = props;
+      const { customVariant, children, isIconOnly, ...rest } = props;
+      void isIconOnly;
       return (
         <StyledIconButton ref={ref} customVariant={customVariant} {...rest}>
           {children}
@@ -208,7 +209,8 @@ const ButtonBase = forwardRef<HTMLButtonElement, PromentorButtonProps>(
       );
     }
 
-    const { customVariant, variant, children, ...rest } = props;
+    const { customVariant, variant, children, isIconOnly, ...rest } = props;
+    void isIconOnly;
     return (
       <StyledButton
         ref={ref}
