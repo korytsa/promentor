@@ -44,12 +44,6 @@ function UnknownPathRedirect() {
 }
 
 export function App() {
-  const { isPending: isSessionPending } = useSessionQuery();
-
-  if (isSessionPending) {
-    return <div style={{ padding: 16 }}>Initializing auth...</div>;
-  }
-
   return (
     <Routes>
       <Route

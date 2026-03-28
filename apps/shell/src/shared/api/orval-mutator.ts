@@ -1,5 +1,6 @@
 import type { Method } from "axios";
-import { apiClient } from "./http";
+import { ApiError, apiClient } from "./http";
+import { getMessageFromResponseData } from "./parseError";
 
 function headersToRecord(
   headers?: HeadersInit,
@@ -25,9 +26,7 @@ export function customInstance<T>(
       data: method === "GET" || method === "HEAD" ? undefined : options?.body,
       headers: headersToRecord(options?.headers),
       signal: options?.signal as AbortSignal | undefined,
-      validateStatus: isAuthMe
-        ? (status) => status === 200 || status === 401
-        : undefined,
+      validateStatus: () => true,
     })
     .then((res) => {
       if (isAuthMe && res.status === 401) {
@@ -37,6 +36,12 @@ export function customInstance<T>(
           headers: res.headers,
         } as T;
       }
+
+      if (res.status < 200 || res.status >= 300) {
+        const message = getMessageFromResponseData(res.data);
+        return Promise.reject(new ApiError(message, res.status));
+      }
+
       return {
         data: res.data,
         status: res.status,

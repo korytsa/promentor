@@ -33,7 +33,9 @@ export function useAuthRoleForm<TValues extends FieldValues>({
     mutate({ role, values });
   };
 
-  const serverError = isError && getErrorMessage(error, fallbackErrorMessage);
+  const serverError = isError
+    ? getErrorMessage(error, fallbackErrorMessage)
+    : undefined;
 
   return {
     register,

@@ -18,7 +18,7 @@ export const FormField = ({
       <Typography variantStyle="label">{label}</Typography>
       <input
         className={cn(
-          "h-12 rounded-xl border px-4 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 outline-none transition-all",
+          "auth-form-input h-12 rounded-xl border px-4 text-slate-100 placeholder:text-slate-500 outline-none transition-all",
           error
             ? "border-rose-500/80 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/30"
             : "border-white/15 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/25",
