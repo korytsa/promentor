@@ -1,5 +1,5 @@
 import type { Method } from "axios";
-import { ApiError, apiClient } from "./http";
+import { ApiError, requestWithAutoRefresh } from "./http";
 import { getMessageFromResponseData } from "./parseError";
 
 function headersToRecord(
@@ -19,33 +19,30 @@ export function customInstance<T>(
 
   const isAuthMe = url === "/auth/me" || url.endsWith("/auth/me");
 
-  return apiClient
-    .request({
-      url,
-      method,
-      data: method === "GET" || method === "HEAD" ? undefined : options?.body,
-      headers: headersToRecord(options?.headers),
-      signal: options?.signal as AbortSignal | undefined,
-      validateStatus: () => true,
-    })
-    .then((res) => {
-      if (isAuthMe && res.status === 401) {
-        return {
-          data: undefined as void,
-          status: 401,
-          headers: res.headers,
-        } as T;
-      }
-
-      if (res.status < 200 || res.status >= 300) {
-        const message = getMessageFromResponseData(res.data);
-        return Promise.reject(new ApiError(message, res.status));
-      }
-
+  return requestWithAutoRefresh({
+    url,
+    method,
+    data: method === "GET" || method === "HEAD" ? undefined : options?.body,
+    headers: headersToRecord(options?.headers),
+    signal: options?.signal as AbortSignal | undefined,
+  }).then((res) => {
+    if (isAuthMe && res.status === 401) {
       return {
-        data: res.data,
-        status: res.status,
+        data: undefined as void,
+        status: 401,
         headers: res.headers,
       } as T;
-    });
+    }
+
+    if (res.status < 200 || res.status >= 300) {
+      const message = getMessageFromResponseData(res.data);
+      return Promise.reject(new ApiError(message, res.status));
+    }
+
+    return {
+      data: res.data,
+      status: res.status,
+      headers: res.headers,
+    } as T;
+  });
 }
