@@ -3,6 +3,8 @@ import type { AuthMode, AuthRoleOption, NavItem, UserRole } from "../types";
 
 export const AUTH_LOGIN_REDIRECT_PATH = "/login/mentor";
 
+export const AUTH_APP_HOME_PATH = "/";
+
 const ROLE_CONFIG: Record<
   UserRole,
   { param: string; title: string; description: string; navItems: NavItem[] }
@@ -84,11 +86,3 @@ export const MENU_LINKS = [
 export const getNavItems = (role: UserRole): NavItem[] => {
   return ROLE_CONFIG[role].navItems;
 };
-
-export const PLACEHOLDER_NAV_PATHS = [
-  ...new Set([
-    ...Object.values(ROLE_CONFIG).flatMap(({ navItems }) =>
-      navItems.map((i) => i.to),
-    ),
-  ]),
-].filter((to) => to !== "/chat");

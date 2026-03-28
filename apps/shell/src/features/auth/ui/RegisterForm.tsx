@@ -1,6 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@promentorapp/ui-kit";
 import type { UserRole } from "@/entities/user/types";
+import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
 import { useRegisterMutation } from "../api";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { registerSchema } from "../model/schema";
@@ -9,6 +11,7 @@ import { AuthFormServerError } from "./AuthFormServerError";
 import { FormField } from "./FormField";
 
 export const RegisterForm = ({ role }: { role: UserRole }) => {
+  const navigate = useNavigate();
   const mutation = useRegisterMutation();
   const {
     register,
@@ -20,6 +23,9 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
   } = useAuthRoleForm({
     role,
     mutation,
+    onAuthenticated: () => {
+      navigate(AUTH_APP_HOME_PATH, { replace: true });
+    },
     fallbackErrorMessage: "Registration failed",
     resolver: zodResolver(registerSchema),
     defaultValues: {

@@ -1,47 +1,11 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { Component, type ReactNode, Suspense, lazy } from "react";
-import {
-  AUTH_LOGIN_REDIRECT_PATH,
-  PLACEHOLDER_NAV_PATHS,
-} from "@/entities/user/model/constants";
+import { Route, Routes } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
-import { useSessionQuery } from "@/features/auth/api";
-import { RequireAuth, RequireGuest } from "./AuthRoutes";
+import { RemoteErrorBoundary } from "@/shared/ui";
+import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
 const ChatWidget = lazy(() => import("chatApp/Widget"));
 const CoachingWidget = lazy(() => import("coachingApp/Widget"));
-
-class RemoteErrorBoundary extends Component<
-  { children: ReactNode; title: string },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <section style={{ padding: 16 }}>
-          <h2>{this.props.title}</h2>
-          <p>Remote is unavailable right now. Try again later.</p>
-        </section>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-function UnknownPathRedirect() {
-  const { data: user } = useSessionQuery();
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-  return <Navigate to={AUTH_LOGIN_REDIRECT_PATH} replace />;
-}
 
 export function App() {
   return (
@@ -84,13 +48,6 @@ export function App() {
           </RequireAuth>
         }
       />
-      {PLACEHOLDER_NAV_PATHS.map((path) => (
-        <Route
-          key={path}
-          path={path}
-          element={<RequireAuth>{null}</RequireAuth>}
-        />
-      ))}
       <Route
         path="/login/:role"
         element={

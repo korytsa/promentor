@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
 import { Menu, Moon, Sun, X } from "lucide-react";
-import {
-  AUTH_LOGIN_REDIRECT_PATH,
-  getNavItems,
-} from "@/entities/user/model/constants";
-import { useSessionQuery } from "@/features/auth/api";
+import type { User } from "@/entities/user/types";
+import { getNavItems } from "@/entities/user/model/constants";
 
 import { Logo } from "./Logo";
 import { Navigation } from "./Navigation";
@@ -13,11 +9,14 @@ import { UserMenu } from "./UserMenu";
 import { Button, useAppTheme } from "@promentorapp/ui-kit";
 import { NotificationsButton } from "./NotificationsButton";
 
-export const Header = () => {
+type HeaderProps = {
+  user: User;
+};
+
+export const Header = ({ user }: HeaderProps) => {
   const { mode, toggleMode } = useAppTheme();
   const isDark = mode === "dark";
-  const { data: user } = useSessionQuery();
-  const navItems = getNavItems(user?.role ?? "REGULAR_USER");
+  const navItems = getNavItems(user.role);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const themeToggleLabel = isDark
@@ -32,10 +31,6 @@ export const Header = () => {
         : "rgba(248, 250, 252, 1)",
     },
   };
-
-  if (!user) {
-    return <Navigate to={AUTH_LOGIN_REDIRECT_PATH} replace />;
-  }
 
   return (
     <header className="sticky top-0 z-50 py-3 px-6 border-b transition-colors border-slate-200/90 dark:border-white/10">
