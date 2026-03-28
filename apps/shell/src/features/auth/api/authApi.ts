@@ -70,9 +70,6 @@ export function useLoginMutation() {
   const { mutate, mutateAsync, ...rest } = useAuthLogin({
     mutation: {
       onSuccess: (res: authLoginResponse) => {
-        if (res.status !== 200) {
-          return;
-        }
         setSessionFromUser(queryClient, res.data.user);
       },
     },
@@ -109,9 +106,6 @@ export function useRegisterMutation() {
   const { mutate, mutateAsync, ...rest } = useAuthRegister({
     mutation: {
       onSuccess: (res: authRegisterResponse) => {
-        if (res.status !== 200) {
-          return;
-        }
         setSessionFromUser(queryClient, res.data.user);
       },
     },
