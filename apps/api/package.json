@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "prisma generate && tsc --noEmit -p tsconfig.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev"
   },
