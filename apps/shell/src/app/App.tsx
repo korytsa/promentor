@@ -1,15 +1,12 @@
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Component, type ReactNode, Suspense, lazy, useEffect } from "react";
-import { UserRole } from "@/entities/user/types";
-import { ShellLayout } from "@/widgets/layout";
-import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
-import { useAuthStore } from "@/features/auth";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { Component, type ReactNode, Suspense, lazy } from "react";
 import {
-  LoginFormValues,
-  RegisterFormValues,
-} from "@/features/auth/model/schema";
-
-const AUTH_REDIRECT_PATH = "/login/mentor";
+  AUTH_LOGIN_REDIRECT_PATH,
+  PLACEHOLDER_NAV_PATHS,
+} from "@/entities/user/model/constants";
+import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
+import { useSessionQuery } from "@/features/auth/api";
+import { RequireAuth, RequireGuest } from "./AuthRoutes";
 
 const ChatWidget = lazy(() => import("chatApp/Widget"));
 const CoachingWidget = lazy(() => import("coachingApp/Widget"));
@@ -38,94 +35,85 @@ class RemoteErrorBoundary extends Component<
   }
 }
 
+function UnknownPathRedirect() {
+  const { data: user } = useSessionQuery();
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+  return <Navigate to={AUTH_LOGIN_REDIRECT_PATH} replace />;
+}
+
 export function App() {
-  const navigate = useNavigate();
-  const { user, isAuthenticated, isInitializing, initializeAuth, authorize } =
-    useAuthStore();
+  const { isPending: isSessionPending } = useSessionQuery();
 
-  useEffect(() => {
-    void initializeAuth();
-  }, [initializeAuth]);
-
-  const role: UserRole = user?.role ?? "REGULAR_USER";
-
-  const handleAuthWithValues = (
-    nextRole: UserRole,
-    values: LoginFormValues | RegisterFormValues,
-  ) => {
-    void authorize(nextRole, values).then(() => {
-      navigate("/", { replace: true });
-    });
-  };
-
-  const handleGoogleAuth = (nextRole: UserRole) => {
-    void authorize(nextRole).then(() => {
-      navigate("/", { replace: true });
-    });
-  };
-
-  const homeRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <DashboardPage role={role} />
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  const chatRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <RemoteErrorBoundary title="Chat">
-        <Suspense fallback={<div style={{ padding: 16 }}>Loading chat...</div>}>
-          <ChatWidget />
-        </Suspense>
-      </RemoteErrorBoundary>
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  const coachingRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <RemoteErrorBoundary title="Coaching">
-        <Suspense
-          fallback={<div style={{ padding: 16 }}>Loading coaching...</div>}
-        >
-          <CoachingWidget />
-        </Suspense>
-      </RemoteErrorBoundary>
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  if (isInitializing) {
+  if (isSessionPending) {
     return <div style={{ padding: 16 }}>Initializing auth...</div>;
   }
 
   return (
     <Routes>
-      <Route path="/" element={homeRouteElement} />
-      <Route path="/chat" element={chatRouteElement} />
-      <Route path="/coaching" element={coachingRouteElement} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <DashboardPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/chat"
+        element={
+          <RequireAuth>
+            <RemoteErrorBoundary title="Chat">
+              <Suspense
+                fallback={<div style={{ padding: 16 }}>Loading chat...</div>}
+              >
+                <ChatWidget />
+              </Suspense>
+            </RemoteErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/coaching"
+        element={
+          <RequireAuth>
+            <RemoteErrorBoundary title="Coaching">
+              <Suspense
+                fallback={
+                  <div style={{ padding: 16 }}>Loading coaching...</div>
+                }
+              >
+                <CoachingWidget />
+              </Suspense>
+            </RemoteErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      {PLACEHOLDER_NAV_PATHS.map((path) => (
+        <Route
+          key={path}
+          path={path}
+          element={<RequireAuth>{null}</RequireAuth>}
+        />
+      ))}
       <Route
         path="/login/:role"
         element={
-          <LoginPage
-            onLogin={handleAuthWithValues}
-            onGoogleLogin={handleGoogleAuth}
-          />
+          <RequireGuest>
+            <LoginPage />
+          </RequireGuest>
         }
       />
       <Route
         path="/register/:role"
         element={
-          <RegisterPage
-            onRegister={handleAuthWithValues}
-            onGoogleRegister={handleGoogleAuth}
-          />
+          <RequireGuest>
+            <RegisterPage />
+          </RequireGuest>
         }
       />
-      <Route path="*" element={<Navigate to={AUTH_REDIRECT_PATH} replace />} />
+      <Route path="*" element={<UnknownPathRedirect />} />
     </Routes>
   );
 }

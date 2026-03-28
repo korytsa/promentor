@@ -1,42 +1,10 @@
-import { UserRole } from "@/entities/user/types";
+import { MENTOR_FLOW, QUICK_ACTIONS, USER_FLOW } from "@/entities/dashboard";
+import { useSessionQuery } from "@/features/auth/api";
 import { Typography } from "@promentorapp/ui-kit";
 
-interface DashboardPageProps {
-  role: UserRole;
-}
-
-const quickActions = [
-  {
-    title: "Set your learning goal",
-    description:
-      "Choose one clear goal for this week so your progress can be measured easily.",
-  },
-  {
-    title: "Join a focused team",
-    description:
-      "Collaborate with peers around the same topic to stay motivated and accountable.",
-  },
-  {
-    title: "Track outcomes",
-    description:
-      "See practical improvements from tasks, feedback sessions, and weekly check-ins.",
-  },
-];
-
-const mentorFlow = [
-  "Create learning boards and structured weekly tasks",
-  "Review submissions and leave practical, actionable feedback",
-  "Support mentees with short sessions and progress checkpoints",
-];
-
-const userFlow = [
-  "Pick a mentor and start with a simple personal roadmap",
-  "Complete weekly tasks and ask questions in chat",
-  "Reflect on feedback and update your next-week plan",
-];
-
-export const DashboardPage = ({ role }: DashboardPageProps) => {
-  const isMentor = role === "MENTOR";
+export const DashboardPage = () => {
+  const { data: user } = useSessionQuery();
+  const isMentor = user?.role === "MENTOR";
 
   return (
     <section className="space-y-6">
@@ -48,7 +16,7 @@ export const DashboardPage = ({ role }: DashboardPageProps) => {
         </Typography>
         <Typography
           variantStyle="body"
-          className="mt-4 max-w-3xl leading-relaxed"
+          className="mt-4 max-w-3xl leading-relaxed text-slate-400"
         >
           ProMentor connects mentors and learners in one practical workflow:
           define goals, work through structured tasks, and improve with ongoing
@@ -57,7 +25,7 @@ export const DashboardPage = ({ role }: DashboardPageProps) => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {quickActions.map((item, index) => (
+        {QUICK_ACTIONS.map((item, index) => (
           <article
             key={item.title}
             className={`rounded-2xl p-5
@@ -71,7 +39,7 @@ export const DashboardPage = ({ role }: DashboardPageProps) => {
             </Typography>
             <Typography
               variantStyle="body"
-              className="mt-2 text-sm leading-relaxed text-slate-300"
+              className="mt-2 text-sm leading-relaxed text-slate-400"
             >
               {item.description}
             </Typography>
@@ -87,8 +55,8 @@ export const DashboardPage = ({ role }: DashboardPageProps) => {
           >
             For Mentors
           </Typography>
-          <ul className="mt-4 space-y-3 text-slate-200">
-            {mentorFlow.map((item) => (
+          <ul className="mt-4 space-y-3 text-slate-400">
+            {MENTOR_FLOW.map((item) => (
               <li key={item} className="flex gap-3">
                 <span className="mt-1 h-2 w-2 rounded-full bg-cyan-300" />
                 <span>{item}</span>
@@ -104,8 +72,8 @@ export const DashboardPage = ({ role }: DashboardPageProps) => {
           >
             For Regular Users
           </Typography>
-          <ul className="mt-4 space-y-3 text-slate-200">
-            {userFlow.map((item) => (
+          <ul className="mt-4 space-y-3 text-slate-400">
+            {USER_FLOW.map((item) => (
               <li key={item} className="flex gap-3">
                 <span className="mt-1 h-2 w-2 rounded-full bg-blue-300" />
                 <span>{item}</span>

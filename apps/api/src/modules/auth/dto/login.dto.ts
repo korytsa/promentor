@@ -1,4 +1,5 @@
-import { IsEmail } from "class-validator";
+import { IsEmail, IsEnum } from "class-validator";
+import { UserRole } from "@prisma/client";
 import { IsStrongPassword } from "../decorators/is-strong-password.decorator";
 
 export class LoginDto {
@@ -7,4 +8,7 @@ export class LoginDto {
 
   @IsStrongPassword()
   password!: string;
+
+  @IsEnum(UserRole)
+  role!: UserRole;
 }

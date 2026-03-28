@@ -1,22 +1,32 @@
 import { useRef } from "react";
-import { Link } from "react-router-dom";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { Button, Typography, Avatar } from "@promentorapp/ui-kit";
 import type { User } from "@/entities/user/types";
+import { useLogoutMutation } from "@/features/auth/api";
+import {
+  AUTH_LOGIN_REDIRECT_PATH,
+  getUserRoleLabel,
+  MENU_LINKS,
+} from "@/entities/user/model/constants";
 import { DropdownMenu } from "@/shared/ui/DropdownMenu";
 
 interface UserMenuProps {
   user: User;
-  onLogout?: () => void;
 }
 
-const MENU_LINKS = [
-  { to: "/profile", icon: UserIcon, label: "Profile" },
-  { to: "/settings", icon: Settings, label: "Settings" },
-];
-
-export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
+export const UserMenu = ({
+  user: { fullName, avatarUrl, email, role },
+}: UserMenuProps) => {
   const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
+  const navigate = useNavigate();
+  const logoutMutation = useLogoutMutation();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => navigate(AUTH_LOGIN_REDIRECT_PATH, { replace: true }),
+    });
+  };
 
   return (
     <DropdownMenu
@@ -44,28 +54,37 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               component="h2"
               className="user-menu-trigger-title text-xs uppercase font-bold transition-colors text-slate-700 dark:text-white/80"
             >
-              {user.fullName}
+              {fullName}
             </Typography>
           </div>
 
-          <Avatar src={user.avatarUrl} alt={user.fullName} size="md" />
+          <Avatar src={avatarUrl} alt={fullName} size="md" />
         </Button>
       )}
     >
       {({ closeMenu }) => (
         <>
           <div className="px-3 py-2 border-b mb-2 border-slate-200 dark:border-white/5">
-            <Typography
-              component="p"
-              className="text-[10px] font-bold uppercase mb-1 text-slate-500"
-            >
-              Signed in as
-            </Typography>
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <Typography
+                component="p"
+                className="text-[10px] font-bold uppercase text-slate-500 shrink-0"
+              >
+                Signed in as
+              </Typography>
+              <Typography
+                component="p"
+                className="text-[10px] font-bold uppercase text-cyan-400/90 dark:text-cyan-300/90 truncate text-right"
+                title={getUserRoleLabel(role)}
+              >
+                {getUserRoleLabel(role)}
+              </Typography>
+            </div>
             <Typography
               component="p"
               className="text-sm font-medium truncate text-slate-900 dark:text-white"
             >
-              {user.email}
+              {email}
             </Typography>
           </div>
 
@@ -91,7 +110,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
             customVariant="menuItemDanger"
             role="menuitem"
             onClick={() => {
-              onLogout?.();
+              handleLogout();
               closeMenu();
             }}
           >

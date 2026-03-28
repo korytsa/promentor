@@ -69,6 +69,14 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
+    if (user.role !== dto.role) {
+      throw new UnauthorizedException(
+        user.role === UserRole.MENTOR
+          ? "This account is a mentor account. Use the mentor sign-in page."
+          : "This account is a regular user account. Use the regular user sign-in page.",
+      );
+    }
+
     await this.issueSession(res, user);
     return this.mapUser(user);
   }
