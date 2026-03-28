@@ -17,10 +17,9 @@ export const Header = ({ role }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mode, toggleMode } = useAppTheme();
   const navItems = getNavItems(role);
-  const isDark = mode === "dark";
 
   return (
-    <header className="sticky top-0 z-50 py-3 px-6 border-b transition-colors border-slate-200/90 dark:border-white/10">
+    <header className="sticky top-0 z-50 border-b border-[var(--pm-divider)] px-6 py-3 transition-colors">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
@@ -40,15 +39,6 @@ export const Header = ({ role }: HeaderProps) => {
             title={
               mode === "dark" ? "Switch to light theme" : "Switch to dark theme"
             }
-            sx={{
-              color: isDark ? "rgba(148, 163, 184, 1)" : "#64748b",
-              backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#ffffff",
-              "&:hover": {
-                backgroundColor: isDark
-                  ? "rgba(255, 255, 255, 0.12)"
-                  : "rgba(248, 250, 252, 1)",
-              },
-            }}
           >
             {mode === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
@@ -83,7 +73,7 @@ export const Header = ({ role }: HeaderProps) => {
         id="mobile-navigation"
         role="navigation"
         aria-label="Mobile Navigation"
-        className={`lg:hidden border-t mt-4 bg-white border-slate-200 dark:bg-slate-900 dark:border-white/5 ${isMobileMenuOpen ? "block" : "hidden"}`}
+        className={`lg:hidden mt-4 border-t border-[var(--pm-divider)] bg-[var(--pm-surface-overlay)] ${isMobileMenuOpen ? "block" : "hidden"}`}
       >
         <Navigation
           items={navItems}

@@ -37,10 +37,10 @@ export const RegisterForm = ({
         onClick={() => onGoogleRegister?.()}
         label="Sign up with Google"
       />
-      <div className="flex items-center gap-3 text-xs text-slate-500">
-        <span className="h-px bg-white/10 flex-1" />
+      <div className="flex items-center gap-3 text-xs pm-text-muted">
+        <span className="h-px flex-1 bg-[var(--pm-divider)]" />
         OR
-        <span className="h-px bg-white/10 flex-1" />
+        <span className="h-px flex-1 bg-[var(--pm-divider)]" />
       </div>
       <FormField
         label="Full Name"

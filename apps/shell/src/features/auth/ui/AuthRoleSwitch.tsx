@@ -23,17 +23,26 @@ export const AuthRoleSwitch = ({ currentRole, page }: AuthRoleSwitchProps) => {
             className={cn(
               "rounded-xl px-4 py-3 text-sm transition-all duration-300",
               active
-                ? "bg-gradient-to-br from-cyan-400/25 to-blue-500/20 text-cyan-100 border border-cyan-300/40 shadow-[0_10px_30px_rgba(14,165,233,0.25)]"
-                : "text-slate-400 border border-white/15 hover:text-slate-200 hover:bg-white/10",
+                ? "border [border-color:var(--pm-accent-cyan-border)] [background-image:linear-gradient(to_bottom_right,var(--pm-accent-cyan-soft),var(--pm-accent-blue-soft))] text-[var(--pm-accent-cyan)] shadow-[0_10px_30px_rgba(14,165,233,0.25)]"
+                : "border pm-border pm-text-muted hover:pm-text-secondary hover:bg-[var(--pm-surface-hover)]",
             )}
           >
             <Typography
               variantStyle="subtitle"
-              className="font-bold uppercase tracking-wide"
+              className={cn(
+                "font-bold uppercase tracking-wide",
+                active ? "text-[var(--pm-accent-cyan)]" : "pm-text-secondary",
+              )}
             >
               {item.title}
             </Typography>
-            <Typography variantStyle="caption" className="mt-1 opacity-90">
+            <Typography
+              variantStyle="caption"
+              className={cn(
+                "mt-1 opacity-90",
+                active ? "pm-text-secondary" : "pm-text-muted",
+              )}
+            >
               {item.description}
             </Typography>
           </Link>

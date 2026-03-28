@@ -36,13 +36,13 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
           <div className="hidden md:flex flex-col gap-1 text-right">
             <Typography
               component="p"
-              className="text-[10px] font-black tracking-widest uppercase text-slate-500"
+              className="text-[10px] font-black tracking-widest uppercase pm-text-muted"
             >
               Welcome,
             </Typography>
             <Typography
               component="h2"
-              className="user-menu-trigger-title text-xs uppercase font-bold transition-colors text-slate-700 dark:text-white/80"
+              className="user-menu-trigger-title text-xs uppercase font-bold transition-colors pm-text-secondary"
             >
               {user.fullName}
             </Typography>
@@ -54,16 +54,16 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
     >
       {({ closeMenu }) => (
         <>
-          <div className="px-3 py-2 border-b mb-2 border-slate-200 dark:border-white/5">
+          <div className="mb-2 border-b border-[var(--pm-divider)] px-3 py-2">
             <Typography
               component="p"
-              className="text-[10px] font-bold uppercase mb-1 text-slate-500"
+              className="mb-1 text-[10px] font-bold uppercase pm-text-muted"
             >
               Signed in as
             </Typography>
             <Typography
               component="p"
-              className="text-sm font-medium truncate text-slate-900 dark:text-white"
+              className="text-sm font-medium truncate pm-text-primary"
             >
               {user.email}
             </Typography>
@@ -76,14 +76,14 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               to={to}
               onClick={closeMenu}
               role="menuitem"
-              className="w-full flex items-center gap-x-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5"
+              className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all pm-text-secondary hover:pm-text-primary hover:bg-[var(--pm-surface-hover)]"
             >
-              <Icon size={18} className="text-slate-400 dark:text-slate-500" />
+              <Icon size={18} className="pm-text-muted" />
               {label}
             </Link>
           ))}
 
-          <div className="my-2 border-t border-slate-200 dark:border-white/5" />
+          <div className="my-2 border-t border-[var(--pm-divider)]" />
 
           <Button
             variant="text"
