@@ -15,6 +15,11 @@ export const GoogleAuthButton = ({
       onClick={() => {}}
       fullWidth={true}
       aria-label={`${label} (coming soon)`}
+      sx={{
+        color: "var(--pm-text-secondary)",
+        border: "1px solid var(--pm-border)",
+        backgroundColor: "var(--pm-surface)",
+      }}
     >
       <FcGoogle size={18} aria-hidden="true" className="shrink-0" />
       {label}

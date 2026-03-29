@@ -15,18 +15,24 @@ export const FormField = ({
 }: FormFieldProps) => {
   return (
     <label className="flex flex-col gap-2">
-      <Typography variantStyle="label">{label}</Typography>
+      <Typography variantStyle="label" className="pm-text-secondary">
+        {label}
+      </Typography>
       <input
         className={cn(
-          "auth-form-input h-12 rounded-xl border px-4 text-slate-100 placeholder:text-slate-500 outline-none transition-all",
+          "h-12 rounded-xl border px-4 bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
           error
             ? "border-rose-500/80 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/30"
-            : "border-white/15 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/25",
+            : "pm-border focus:border-[var(--pm-accent-cyan)] focus:ring-2 focus:ring-cyan-500/25",
           className,
         )}
         {...props}
       />
-      {error ? <Typography variantStyle="error">{error}</Typography> : null}
+      {error ? (
+        <Typography variantStyle="error" className="text-rose-500">
+          {error}
+        </Typography>
+      ) : null}
     </label>
   );
 };

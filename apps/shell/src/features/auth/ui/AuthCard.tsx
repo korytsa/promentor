@@ -22,9 +22,17 @@ export const AuthCard = ({ role, mode, children }: AuthCardProps) => {
     mode === "login" ? "Create account" : "I already have an account";
 
   return (
-    <section className="w-full max-w-xl rounded-3xl border border-white/15 bg-slate-950/55 p-7 md:p-8 shadow-[0_30px_100px_rgba(6,182,212,0.2)] backdrop-blur-2xl">
-      <Typography variantStyle="eyebrow">PROMENTOR</Typography>
-      <Typography variantStyle="title" className="mt-3 text-3xl">
+    <section className="w-full max-w-xl rounded-3xl border border-[var(--pm-border)] p-7 shadow-[0_30px_100px_rgba(6,182,212,0.2)] md:p-8">
+      <Typography
+        variantStyle="eyebrow"
+        className="text-[var(--pm-accent-cyan)]"
+      >
+        PROMENTOR
+      </Typography>
+      <Typography
+        variantStyle="title"
+        className="mt-3 text-3xl pm-text-primary"
+      >
         {mode === "login" ? "Welcome back" : "Create your account"}
       </Typography>
 
@@ -60,11 +68,11 @@ export const AuthCard = ({ role, mode, children }: AuthCardProps) => {
       <div className="mt-6">{children}</div>
 
       <div className="mt-7">
-        <Typography variantStyle="muted" className="text-sm">
+        <Typography variantStyle="muted" className="text-sm pm-text-muted">
           {mode === "login" ? "New here?" : "Already registered?"}{" "}
           <Link
-            to={getAuthRoute(oppositeAction, role)}
-            className="text-cyan-300 hover:text-cyan-200 font-semibold"
+            to={`/${oppositeAction}/${role.toLowerCase()}`}
+            className="font-semibold text-[var(--pm-accent-cyan)] hover:opacity-80"
           >
             {oppositeLabel}
           </Link>

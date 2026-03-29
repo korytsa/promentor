@@ -54,22 +54,13 @@ const StyledIconButton = styled(MuiIconButton, {
     },
   }),
   ...(customVariant === "glass" && {
-    color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255, 255, 255, 0.05)"
-        : "rgba(255, 255, 255, 0.8)",
-    border:
-      theme.palette.mode === "dark"
-        ? "1px solid transparent"
-        : "1px solid rgba(148, 163, 184, 0.35)",
+    color: "var(--pm-text-primary)",
+    backgroundColor: "var(--pm-surface)",
+    border: "1px solid var(--pm-border)",
     borderRadius: "12px",
     transition: "all 0.2s",
     "&:hover": {
-      backgroundColor:
-        theme.palette.mode === "dark"
-          ? "rgba(255, 255, 255, 0.1)"
-          : "rgba(255, 255, 255, 1)",
+      backgroundColor: "var(--pm-surface-overlay)",
     },
     padding: "8px",
   }),
@@ -101,22 +92,13 @@ const StyledButton = styled(MuiButton, {
     borderRadius: "8px",
   }),
   ...(customVariant === "glass" && {
-    color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255, 255, 255, 0.05)"
-        : "rgba(255, 255, 255, 0.8)",
-    border:
-      theme.palette.mode === "dark"
-        ? "1px solid transparent"
-        : "1px solid rgba(148, 163, 184, 0.35)",
+    color: "var(--pm-text-primary)",
+    backgroundColor: "var(--pm-surface)",
+    border: "1px solid var(--pm-border)",
     borderRadius: "12px",
     textTransform: "none",
     "&:hover": {
-      backgroundColor:
-        theme.palette.mode === "dark"
-          ? "rgba(255, 255, 255, 0.1)"
-          : "rgba(255, 255, 255, 1)",
+      backgroundColor: "var(--pm-surface-overlay)",
     },
   }),
   ...(customVariant === "authPrimary" && {
@@ -137,16 +119,16 @@ const StyledButton = styled(MuiButton, {
     borderRadius: "12px",
     textTransform: "none",
     fontWeight: 600,
-    color: "#f1f5f9",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    color: "var(--pm-text-secondary)",
+    border: "1px solid var(--pm-border)",
+    backgroundColor: "var(--pm-surface)",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "8px",
     "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.09)",
-      border: "1px solid rgba(255, 255, 255, 0.35)",
+      backgroundColor: "var(--pm-surface-hover)",
+      border: "1px solid var(--pm-border)",
     },
   }),
   ...(customVariant === "plain" && {
@@ -173,7 +155,7 @@ const StyledButton = styled(MuiButton, {
       backgroundColor: "transparent",
     },
     "&:hover .user-menu-trigger-title": {
-      color: theme.palette.mode === "dark" ? "#fff" : "#0f172a",
+      color: "var(--pm-text-primary)",
     },
   }),
   ...(customVariant === "menuItemDanger" && {

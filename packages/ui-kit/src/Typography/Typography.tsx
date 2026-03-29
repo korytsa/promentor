@@ -18,14 +18,14 @@ export interface PromentorTypographyProps extends MuiTypographyProps {
 }
 
 const variantStyleClasses: Record<TypographyVariantStyle, string> = {
-  title: "text-slate-100 font-black",
-  subtitle: "text-slate-200 font-semibold",
-  body: "text-slate-200",
-  label: "text-sm font-semibold text-slate-200/95",
-  caption: "text-xs text-slate-400",
-  muted: "text-slate-400",
+  title: "font-black pm-text-primary",
+  subtitle: "font-semibold pm-text-secondary",
+  body: "pm-text-secondary",
+  label: "text-sm font-semibold pm-text-secondary",
+  caption: "text-xs pm-text-muted",
+  muted: "pm-text-muted",
   error: "text-xs text-rose-400",
-  eyebrow: "uppercase tracking-wide text-cyan-300 font-semibold",
+  eyebrow: "font-semibold uppercase tracking-wide text-[var(--pm-accent-cyan)]",
 };
 
 const withClasses = (...values: Array<string | undefined>) =>
