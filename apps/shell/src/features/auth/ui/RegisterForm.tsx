@@ -1,24 +1,32 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@promentorapp/ui-kit";
-import { RegisterFormValues, registerSchema } from "../model/schema";
+import type { UserRole } from "@/entities/user/types";
+import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
+import { useRegisterMutation } from "../api";
+import { useAuthRoleForm } from "../model/useAuthRoleForm";
+import { registerSchema } from "../model/schema";
+import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
+import { AuthFormServerError } from "./AuthFormServerError";
 import { FormField } from "./FormField";
-import { GoogleAuthButton } from "./GoogleAuthButton";
 
-interface RegisterFormProps {
-  onSubmit: (values: RegisterFormValues) => void;
-  onGoogleRegister?: () => void;
-}
-
-export const RegisterForm = ({
-  onSubmit,
-  onGoogleRegister,
-}: RegisterFormProps) => {
+export const RegisterForm = ({ role }: { role: UserRole }) => {
+  const navigate = useNavigate();
+  const mutation = useRegisterMutation();
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormValues>({
+    errors,
+    submitHandler,
+    serverError,
+    isPending,
+  } = useAuthRoleForm({
+    role,
+    mutation,
+    onAuthenticated: () => {
+      navigate(AUTH_APP_HOME_PATH, { replace: true });
+    },
+    fallbackErrorMessage: "Registration failed",
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: "",
@@ -27,21 +35,10 @@ export const RegisterForm = ({
     },
   });
 
-  const submitHandler: SubmitHandler<RegisterFormValues> = (values) => {
-    onSubmit(values);
-  };
-
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <GoogleAuthButton
-        onClick={() => onGoogleRegister?.()}
-        label="Sign up with Google"
-      />
-      <div className="flex items-center gap-3 text-xs text-slate-500">
-        <span className="h-px bg-white/10 flex-1" />
-        OR
-        <span className="h-px bg-white/10 flex-1" />
-      </div>
+      <AuthFormServerError message={serverError} />
+      <AuthFormOAuthDivider googleLabel="Sign up with Google" />
       <FormField
         label="Full Name"
         type="text"
@@ -67,7 +64,12 @@ export const RegisterForm = ({
         {...register("password")}
       />
       <div className="mt-3">
-        <Button type="submit" customVariant="authPrimary" fullWidth={true}>
+        <Button
+          type="submit"
+          customVariant="authPrimary"
+          fullWidth={true}
+          disabled={isPending}
+        >
           Create Account
         </Button>
       </div>

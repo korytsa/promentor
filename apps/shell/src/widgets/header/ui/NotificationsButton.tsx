@@ -28,7 +28,7 @@ export const NotificationsButton = ({
           <span className="relative inline-flex">
             <Bell className="size-6" />
             {hasUnread && (
-              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-blue-500 rounded-full" />
+              <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-[var(--pm-accent-blue)]" />
             )}
           </span>
         </Button>
@@ -36,18 +36,18 @@ export const NotificationsButton = ({
     >
       {({ closeMenu }) => (
         <div className="flex flex-col">
-          <div className="p-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+          <div className="p-2 text-sm font-semibold pm-text-secondary">
             Notifications
           </div>
-          <div className="border-t border-slate-200 dark:border-white/5" />
+          <div className="border-t border-[var(--pm-divider)]" />
           <div className="flex flex-col gap-y-1">
             <Link
               to="/notifications"
               onClick={closeMenu}
-              className="w-full text-left flex flex-col gap-y-1 px-2 py-2 rounded-lg transition-all text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5"
+              className="flex w-full flex-col gap-y-1 rounded-lg px-2 py-2 text-left text-sm transition-all pm-text-secondary hover:pm-text-primary hover:bg-[var(--pm-surface-hover)]"
             >
               <span className="font-medium">New notification!</span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs pm-text-muted">
                 Training plan has been updated.
               </span>
             </Link>

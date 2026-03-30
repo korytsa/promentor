@@ -1,21 +1,32 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@promentorapp/ui-kit";
-import { LoginFormValues, loginSchema } from "../model/schema";
+import type { UserRole } from "@/entities/user/types";
+import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
+import { useLoginMutation } from "../api";
+import { useAuthRoleForm } from "../model/useAuthRoleForm";
+import { loginSchema } from "../model/schema";
+import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
+import { AuthFormServerError } from "./AuthFormServerError";
 import { FormField } from "./FormField";
-import { GoogleAuthButton } from "./GoogleAuthButton";
 
-interface LoginFormProps {
-  onSubmit: (values: LoginFormValues) => void;
-  onGoogleLogin?: () => void;
-}
-
-export const LoginForm = ({ onSubmit, onGoogleLogin }: LoginFormProps) => {
+export const LoginForm = ({ role }: { role: UserRole }) => {
+  const navigate = useNavigate();
+  const mutation = useLoginMutation();
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
+    errors,
+    submitHandler,
+    serverError,
+    isPending,
+  } = useAuthRoleForm({
+    role,
+    mutation,
+    onAuthenticated: () => {
+      navigate(AUTH_APP_HOME_PATH, { replace: true });
+    },
+    fallbackErrorMessage: "Sign in failed",
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -23,21 +34,10 @@ export const LoginForm = ({ onSubmit, onGoogleLogin }: LoginFormProps) => {
     },
   });
 
-  const submitHandler: SubmitHandler<LoginFormValues> = (values) => {
-    onSubmit(values);
-  };
-
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <GoogleAuthButton
-        onClick={() => onGoogleLogin?.()}
-        label="Sign in with Google"
-      />
-      <div className="flex items-center gap-3 text-xs text-slate-500">
-        <span className="h-px bg-white/10 flex-1" />
-        OR
-        <span className="h-px bg-white/10 flex-1" />
-      </div>
+      <AuthFormServerError message={serverError} />
+      <AuthFormOAuthDivider googleLabel="Sign in with Google" />
       <FormField
         label="Email"
         type="email"
@@ -56,7 +56,12 @@ export const LoginForm = ({ onSubmit, onGoogleLogin }: LoginFormProps) => {
       />
 
       <div className="mt-3">
-        <Button type="submit" customVariant="authPrimary" fullWidth={true}>
+        <Button
+          type="submit"
+          customVariant="authPrimary"
+          fullWidth={true}
+          disabled={isPending}
+        >
           Sign In
         </Button>
       </div>

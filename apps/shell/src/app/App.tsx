@@ -1,131 +1,145 @@
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Component, type ReactNode, Suspense, lazy, useEffect } from "react";
-import { UserRole } from "@/entities/user/types";
-import { ShellLayout } from "@/widgets/layout";
+import { Route, Routes } from "react-router-dom";
+import { Suspense, lazy, type ReactNode } from "react";
 import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
-import { useAuthStore } from "@/features/auth";
-import {
-  LoginFormValues,
-  RegisterFormValues,
-} from "@/features/auth/model/schema";
-
-const AUTH_REDIRECT_PATH = "/login/mentor";
+import { RemoteErrorBoundary } from "@/shared/ui";
+import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
 const ChatWidget = lazy(() => import("chatApp/Widget"));
-const CoachingWidget = lazy(() => import("coachingApp/Widget"));
+const TeamsPage = lazy(() => import("coachingApp/TeamsPage"));
+const BoardsPage = lazy(() => import("coachingApp/BoardsPage"));
+const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
+const ExploreTeamsPage = lazy(() => import("coachingApp/ExploreTeamsPage"));
+const MentorsPage = lazy(() => import("coachingApp/MentorsPage"));
+const SuggestionPage = lazy(() => import("coachingApp/SuggestionPage"));
 
-class RemoteErrorBoundary extends Component<
-  { children: ReactNode; title: string },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
+type ProtectedRemoteRouteProps = {
+  title: string;
+  loadingText: string;
+  children: ReactNode;
+};
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
+type RemoteRouteConfig = {
+  path: string;
+  title: string;
+  loadingText: string;
+  element: ReactNode;
+};
 
-  render() {
-    if (this.state.hasError) {
-      return (
-        <section style={{ padding: 16 }}>
-          <h2>{this.props.title}</h2>
-          <p>Remote is unavailable right now. Try again later.</p>
-        </section>
-      );
-    }
+type GuestRouteConfig = {
+  path: string;
+  element: ReactNode;
+};
 
-    return this.props.children;
-  }
+const remoteRoutes: RemoteRouteConfig[] = [
+  {
+    path: "/chat",
+    title: "Chat",
+    loadingText: "Loading chat...",
+    element: <ChatWidget />,
+  },
+  {
+    path: "/teams",
+    title: "Teams",
+    loadingText: "Loading teams...",
+    element: <TeamsPage />,
+  },
+  {
+    path: "/boards",
+    title: "Boards",
+    loadingText: "Loading boards...",
+    element: <BoardsPage />,
+  },
+  {
+    path: "/workout-plans",
+    title: "Workout Plans",
+    loadingText: "Loading workout plans...",
+    element: <WorkoutPlansPage />,
+  },
+  {
+    path: "/explore-teams",
+    title: "Explore Teams",
+    loadingText: "Loading explore teams...",
+    element: <ExploreTeamsPage />,
+  },
+  {
+    path: "/mentors",
+    title: "Mentors",
+    loadingText: "Loading mentors...",
+    element: <MentorsPage />,
+  },
+  {
+    path: "/suggestion",
+    title: "Suggestion",
+    loadingText: "Loading suggestion...",
+    element: <SuggestionPage />,
+  },
+];
+
+const guestRoutes: GuestRouteConfig[] = [
+  {
+    path: "/login/:role",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register/:role",
+    element: <RegisterPage />,
+  },
+];
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  return <RequireAuth>{children}</RequireAuth>;
+}
+
+function GuestRoute({ children }: { children: ReactNode }) {
+  return <RequireGuest>{children}</RequireGuest>;
+}
+
+function ProtectedRemoteRoute({
+  title,
+  loadingText,
+  children,
+}: ProtectedRemoteRouteProps) {
+  return (
+    <ProtectedRoute>
+      <RemoteErrorBoundary title={title}>
+        <Suspense fallback={<div>{loadingText}</div>}>{children}</Suspense>
+      </RemoteErrorBoundary>
+    </ProtectedRoute>
+  );
 }
 
 export function App() {
-  const navigate = useNavigate();
-  const { user, isAuthenticated, isInitializing, initializeAuth, authorize } =
-    useAuthStore();
-
-  useEffect(() => {
-    void initializeAuth();
-  }, [initializeAuth]);
-
-  const role: UserRole = user?.role ?? "REGULAR_USER";
-
-  const handleAuthWithValues = (
-    nextRole: UserRole,
-    values: LoginFormValues | RegisterFormValues,
-  ) => {
-    void authorize(nextRole, values).then(() => {
-      navigate("/", { replace: true });
-    });
-  };
-
-  const handleGoogleAuth = (nextRole: UserRole) => {
-    void authorize(nextRole).then(() => {
-      navigate("/", { replace: true });
-    });
-  };
-
-  const homeRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <DashboardPage role={role} />
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  const chatRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <RemoteErrorBoundary title="Chat">
-        <Suspense fallback={<div style={{ padding: 16 }}>Loading chat...</div>}>
-          <ChatWidget />
-        </Suspense>
-      </RemoteErrorBoundary>
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  const coachingRouteElement = isAuthenticated ? (
-    <ShellLayout role={role}>
-      <RemoteErrorBoundary title="Coaching">
-        <Suspense
-          fallback={<div style={{ padding: 16 }}>Loading coaching...</div>}
-        >
-          <CoachingWidget />
-        </Suspense>
-      </RemoteErrorBoundary>
-    </ShellLayout>
-  ) : (
-    <Navigate to={AUTH_REDIRECT_PATH} replace />
-  );
-
-  if (isInitializing) {
-    return <div style={{ padding: 16 }}>Initializing auth...</div>;
-  }
-
   return (
     <Routes>
-      <Route path="/" element={homeRouteElement} />
-      <Route path="/chat" element={chatRouteElement} />
-      <Route path="/coaching" element={coachingRouteElement} />
       <Route
-        path="/login/:role"
+        path="/"
         element={
-          <LoginPage
-            onLogin={handleAuthWithValues}
-            onGoogleLogin={handleGoogleAuth}
-          />
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
         }
       />
-      <Route
-        path="/register/:role"
-        element={
-          <RegisterPage
-            onRegister={handleAuthWithValues}
-            onGoogleRegister={handleGoogleAuth}
-          />
-        }
-      />
-      <Route path="*" element={<Navigate to={AUTH_REDIRECT_PATH} replace />} />
+
+      {remoteRoutes.map(({ path, title, loadingText, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <ProtectedRemoteRoute title={title} loadingText={loadingText}>
+              {element}
+            </ProtectedRemoteRoute>
+          }
+        />
+      ))}
+
+      {guestRoutes.map(({ path, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={<GuestRoute>{element}</GuestRoute>}
+        />
+      ))}
+      <Route path="*" element={<UnknownPathRedirect />} />
     </Routes>
   );
 }

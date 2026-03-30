@@ -1,0 +1,187 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Promentor API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "healthCheck",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  },
+                  "required": ["status"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "authRegister",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "authLogin",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "authRefresh",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "authLogout",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LogoutResponseDto" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "authMe",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthUserResponseDto" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserRole": {
+        "type": "string",
+        "enum": ["MENTOR", "REGULAR_USER"]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" }
+        },
+        "required": ["email", "password", "role"]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "fullName": { "type": "string", "minLength": 3 },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" }
+        },
+        "required": ["fullName", "email", "password"]
+      },
+      "AuthUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" }
+        },
+        "required": ["id", "fullName", "email", "role"]
+      },
+      "AuthSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "user": { "$ref": "#/components/schemas/AuthUserResponseDto" }
+        },
+        "required": ["user"]
+      },
+      "LogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] }
+        },
+        "required": ["ok"]
+      }
+    }
+  }
+}
