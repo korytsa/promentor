@@ -4,7 +4,7 @@ import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
 import { RemoteErrorBoundary } from "@/shared/ui";
 import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
-const ChatWidget = lazy(() => import("chatApp/Widget"));
+const ChatPage = lazy(() => import("chatApp/ChatPage"));
 const TeamsPage = lazy(() => import("coachingApp/TeamsPage"));
 const BoardsPage = lazy(() => import("coachingApp/BoardsPage"));
 const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
@@ -35,7 +35,7 @@ const remoteRoutes: RemoteRouteConfig[] = [
     path: "/chat",
     title: "Chat",
     loadingText: "Loading chat...",
-    element: <ChatWidget />,
+    element: <ChatPage />,
   },
   {
     path: "/teams",
