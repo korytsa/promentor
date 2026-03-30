@@ -16,7 +16,7 @@ const ROLE_CONFIG: Record<
     navItems: [
       { label: "Teams", to: "/teams" },
       { label: "Boards", to: "/boards" },
-      { label: "Workout Plans", to: "/plans" },
+      { label: "Workout Plans", to: "/workout-plans" },
       { label: "Chat", to: "/chat" },
     ],
   },
@@ -25,7 +25,7 @@ const ROLE_CONFIG: Record<
     title: "Regular User",
     description: "Explore teams, connect with mentors, and collaborate.",
     navItems: [
-      { label: "Explore Teams", to: "/explore" },
+      { label: "Explore Teams", to: "/explore-teams" },
       { label: "Mentors", to: "/mentors" },
       { label: "Chat", to: "/chat" },
       { label: "Suggestion", to: "/suggestion" },

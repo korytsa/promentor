@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
           chatApp: chatRemoteUrl,
           coachingApp: coachingRemoteUrl,
         },
-        shared: ["react", "react-dom"],
+        shared: ["react", "react-dom", "react-router-dom"],
       }),
     ],
     resolve: {
