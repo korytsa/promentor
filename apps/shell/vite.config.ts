@@ -6,7 +6,6 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
-  // TODO(mf): replace localhost defaults with deployed remoteEntry URLs in environment config.
   const chatRemoteUrl =
     env.VITE_CHAT_REMOTE_URL || "http://localhost:4174/assets/remoteEntry.js";
   const coachingRemoteUrl =
@@ -14,6 +13,9 @@ export default defineConfig(({ mode }) => {
     "http://localhost:4175/assets/remoteEntry.js";
 
   return {
+    optimizeDeps: {
+      include: ["@tanstack/react-query", "axios"],
+    },
     plugins: [
       react(),
       federation({
@@ -22,7 +24,7 @@ export default defineConfig(({ mode }) => {
           chatApp: chatRemoteUrl,
           coachingApp: coachingRemoteUrl,
         },
-        shared: ["react", "react-dom"],
+        shared: ["react", "react-dom", "react-router-dom"],
       }),
     ],
     resolve: {

@@ -1,22 +1,32 @@
 import { useRef } from "react";
-import { Link } from "react-router-dom";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { Button, Typography, Avatar } from "@promentorapp/ui-kit";
 import type { User } from "@/entities/user/types";
+import { useLogoutMutation } from "@/features/auth/api";
+import {
+  AUTH_LOGIN_REDIRECT_PATH,
+  getUserRoleLabel,
+  MENU_LINKS,
+} from "@/entities/user/model/constants";
 import { DropdownMenu } from "@/shared/ui/DropdownMenu";
 
 interface UserMenuProps {
   user: User;
-  onLogout?: () => void;
 }
 
-const MENU_LINKS = [
-  { to: "/profile", icon: UserIcon, label: "Profile" },
-  { to: "/settings", icon: Settings, label: "Settings" },
-];
-
-export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
+export const UserMenu = ({
+  user: { fullName, avatarUrl, email, role },
+}: UserMenuProps) => {
   const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
+  const navigate = useNavigate();
+  const logoutMutation = useLogoutMutation();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => navigate(AUTH_LOGIN_REDIRECT_PATH, { replace: true }),
+    });
+  };
 
   return (
     <DropdownMenu
@@ -36,36 +46,45 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
           <div className="hidden md:flex flex-col gap-1 text-right">
             <Typography
               component="p"
-              className="text-[10px] font-black tracking-widest uppercase text-slate-500"
+              className="text-[10px] font-black tracking-widest uppercase pm-text-muted"
             >
               Welcome,
             </Typography>
             <Typography
               component="h2"
-              className="user-menu-trigger-title text-xs uppercase font-bold transition-colors text-slate-700 dark:text-white/80"
+              className="user-menu-trigger-title text-xs uppercase font-bold transition-colors pm-text-secondary"
             >
-              {user.fullName}
+              {fullName}
             </Typography>
           </div>
 
-          <Avatar src={user.avatarUrl} alt={user.fullName} size="md" />
+          <Avatar src={avatarUrl} alt={fullName} size="md" />
         </Button>
       )}
     >
       {({ closeMenu }) => (
         <>
           <div className="px-3 py-2 border-b mb-2 border-slate-200 dark:border-white/5">
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <Typography
+                component="p"
+                className="text-[10px] font-bold uppercase text-slate-500 shrink-0"
+              >
+                Signed in as
+              </Typography>
+              <Typography
+                component="p"
+                className="text-[10px] font-bold uppercase text-cyan-400/90 dark:text-cyan-300/90 truncate text-right"
+                title={getUserRoleLabel(role)}
+              >
+                {getUserRoleLabel(role)}
+              </Typography>
+            </div>
             <Typography
               component="p"
-              className="text-[10px] font-bold uppercase mb-1 text-slate-500"
+              className="text-sm font-medium truncate pm-text-primary"
             >
-              Signed in as
-            </Typography>
-            <Typography
-              component="p"
-              className="text-sm font-medium truncate text-slate-900 dark:text-white"
-            >
-              {user.email}
+              {email}
             </Typography>
           </div>
 
@@ -76,14 +95,14 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               to={to}
               onClick={closeMenu}
               role="menuitem"
-              className="w-full flex items-center gap-x-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5"
+              className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all pm-text-secondary hover:pm-text-primary hover:bg-[var(--pm-surface-hover)]"
             >
-              <Icon size={18} className="text-slate-400 dark:text-slate-500" />
+              <Icon size={18} className="pm-text-muted" />
               {label}
             </Link>
           ))}
 
-          <div className="my-2 border-t border-slate-200 dark:border-white/5" />
+          <div className="my-2 border-t border-[var(--pm-divider)]" />
 
           <Button
             variant="text"
@@ -91,7 +110,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
             customVariant="menuItemDanger"
             role="menuitem"
             onClick={() => {
-              onLogout?.();
+              handleLogout();
               closeMenu();
             }}
           >

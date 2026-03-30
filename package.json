@@ -13,6 +13,7 @@
     "dev:api": "turbo dev --filter=api",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck && tsc --noEmit -p tsconfig.json",
+    "codegen": "pnpm --filter shell codegen",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
