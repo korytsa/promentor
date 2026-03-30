@@ -20,7 +20,7 @@ export const FormField = ({
       </Typography>
       <input
         className={cn(
-          "h-12 rounded-xl border px-4 bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
+          "auth-form-input h-12 rounded-xl border px-4 bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
           error
             ? "border-rose-500/80 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/30"
             : "pm-border focus:border-[var(--pm-accent-cyan)] focus:ring-2 focus:ring-cyan-500/25",
