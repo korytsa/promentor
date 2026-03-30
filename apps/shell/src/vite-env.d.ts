@@ -10,10 +10,10 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare module "chatApp/Widget" {
+declare module "chatApp/ChatPage" {
   import type { ComponentType } from "react";
-  const ChatWidget: ComponentType;
-  export default ChatWidget;
+  const ChatPage: ComponentType;
+  export default ChatPage;
 }
 
 declare module "coachingApp/TeamsPage" {
