@@ -59,13 +59,13 @@ pnpm dev:web
 
 - `http://localhost:4174/assets/remoteEntry.js`
 - `http://localhost:4175/assets/remoteEntry.js`
-- shell routes: `/chat` and `/coaching`
+- shell routes: `/chat`, `/teams`, `/boards`, `/workout-plans`, `/explore-teams`, `/mentors`, `/suggestion`
 
 ### Remote contract (do not break without host update)
 
-- Chat remote: `name: "chatApp"`, exposed module: `./Widget`, import path in shell: `chatApp/Widget`.
-- Coaching remote: `name: "coachingApp"`, exposed module: `./Widget`, import path in shell: `coachingApp/Widget`.
-- Exposed module must keep default export as a React component.
+- Chat remote: `name: "chatApp"`, exposed module: `./ChatPage`, import path in shell: `chatApp/ChatPage`.
+- Coaching remote: `name: "coachingApp"`, exposed modules: `./TeamsPage`, `./BoardsPage`, `./WorkoutPlansPage`, `./ExploreTeamsPage`, `./MentorsPage`, `./SuggestionPage`.
+- Exposed modules must keep default export as React components.
 - `react` and `react-dom` versions must stay compatible between host and remotes.
 
 ### Deploy hosts
@@ -85,14 +85,14 @@ pnpm dev:web
 - `packages/types` · `packages/ui-kit` — published as **`@promentorapp/types`** / **`@promentorapp/ui-kit`**.
 - `packages/tsconfig` · `packages/eslint-config` — shared config (workspace only).
 
-Tailwind **preflight is off** in the shell so it does not clash with MUI **`CssBaseline`**.
+Tailwind **preflight is on** in the shell; global reset and base styles come from Tailwind + MUI **`CssBaseline`**.
 
 ## npm packages `@promentorapp`
 
 **Published:** `@promentorapp/types`, `@promentorapp/ui-kit` ([npm](https://www.npmjs.com/)).
 
 - **In this repo:** `"@promentorapp/types": "workspace:*"` (and same for `ui-kit`).
-- **Elsewhere:** `pnpm add @promentorapp/types @promentorapp/ui-kit` (pin versions, e.g. `^0.1.0`).
+- **Elsewhere:** `pnpm add @promentorapp/types @promentorapp/ui-kit` (pin versions, e.g. `^0.1.1`).
 - **`ui-kit` peers:** `react`, `react-dom`, `@mui/material`, `@emotion/react`, `@emotion/styled` — copy ranges from `apps/shell/package.json`.
 
 **Publish a new version:** bump `version` in `packages/types` and/or `packages/ui-kit`, then:
