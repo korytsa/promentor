@@ -12,6 +12,11 @@ enum UserRole {
   MENTOR
 }
 
+enum ChatRoomType {
+  PRIVATE @map("private")
+  GROUP   @map("group")
+}
+
 model User {
   id            String         @id @default(cuid())
   fullName      String
@@ -21,6 +26,9 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+  createdRooms  ChatRoom[]     @relation("RoomCreator")
+  roomMembers   RoomMember[]
+  sentMessages  ChatMessage[]
 }
 
 model RefreshToken {
@@ -30,4 +38,47 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model ChatRoom {
+  id         String       @id @default(uuid()) @db.Uuid
+  name       String?
+  type       ChatRoomType
+  privatePairKey String?  @unique
+  createdBy  String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  creator    User         @relation("RoomCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members    RoomMember[]
+  messages   ChatMessage[]
+
+  @@index([createdBy])
+  @@map("chat_rooms")
+}
+
+model RoomMember {
+  roomId   String   @db.Uuid
+  userId   String
+  joinedAt DateTime @default(now())
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId, joinedAt])
+  @@index([roomId, joinedAt])
+  @@map("room_members")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  roomId    String   @db.Uuid
+  senderId  String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([senderId])
+  @@map("chat_messages")
 }
