@@ -4,7 +4,12 @@ import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
 import { RemoteErrorBoundary } from "@/shared/ui";
 import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
-const ChatPage = lazy(() => import("chatApp/ChatPage"));
+const ChatEmptyPage = lazy(() => import("chatApp/ChatEmptyPage"));
+const ChatCreateGroupPage = lazy(() => import("chatApp/ChatCreateGroupPage"));
+const ChatProfilePage = lazy(() => import("chatApp/ChatProfilePage"));
+const ChatConversationPage = lazy(() => import("chatApp/ChatConversationPage"));
+const ChatSidebar = lazy(() => import("chatApp/ChatSidebar"));
+
 const TeamsPage = lazy(() => import("coachingApp/TeamsPage"));
 const BoardsPage = lazy(() => import("coachingApp/BoardsPage"));
 const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
@@ -35,7 +40,31 @@ const remoteRoutes: RemoteRouteConfig[] = [
     path: "/chat",
     title: "Chat",
     loadingText: "Loading chat...",
-    element: <ChatPage />,
+    element: <ChatEmptyPage />,
+  },
+  {
+    path: "/chat/create-group",
+    title: "Create Group",
+    loadingText: "Loading create group...",
+    element: <ChatCreateGroupPage />,
+  },
+  {
+    path: "/chat/profile",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ChatProfilePage />,
+  },
+  {
+    path: "/chat/profile/:slug",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ChatProfilePage />,
+  },
+  {
+    path: "/chat/:chatId",
+    title: "Chat",
+    loadingText: "Loading chat...",
+    element: <ChatConversationPage />,
   },
   {
     path: "/teams",
@@ -126,7 +155,10 @@ export function App() {
           path={path}
           element={
             <ProtectedRemoteRoute title={title} loadingText={loadingText}>
-              {element}
+              <div className="flex flex-1 w-full h-[calc(100vh-130px)] flex-row">
+                <ChatSidebar />
+                {element}
+              </div>
             </ProtectedRemoteRoute>
           }
         />
