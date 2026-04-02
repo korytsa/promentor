@@ -129,7 +129,7 @@ export function useLogoutMutation() {
 
   return useAuthLogout({
     mutation: {
-      onSettled: () => {
+      onSuccess: () => {
         clearSessionCache(queryClient);
       },
     },
