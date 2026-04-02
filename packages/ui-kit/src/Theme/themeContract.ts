@@ -68,6 +68,10 @@ const themeVarsByMode: Record<AppThemeMode, ThemeCssVars> = {
 };
 
 export function applyThemeContract(mode: AppThemeMode) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
   const root = document.documentElement;
   const vars = themeVarsByMode[mode];
 

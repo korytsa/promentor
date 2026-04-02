@@ -4,7 +4,7 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
@@ -46,7 +46,7 @@ export function AppThemeProvider({ children }: AppThemeProviderProps) {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.localStorage.setItem(THEME_STORAGE_KEY, mode);
     applyThemeContract(mode);
   }, [mode]);
