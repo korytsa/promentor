@@ -115,7 +115,10 @@ export const authBridge: AuthBridge = {
       throw new Error("Auth bridge is not initialized");
     }
 
-    await authLogout();
-    queryClientRef.setQueryData(authQueryKeys.session(), null);
+    try {
+      await authLogout();
+    } finally {
+      queryClientRef.setQueryData(authQueryKeys.session(), null);
+    }
   },
 };
