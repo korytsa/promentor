@@ -58,7 +58,7 @@ export const UserMenu = ({
             </Typography>
           </div>
 
-          <Avatar src={avatarUrl} alt={fullName} size="md" />
+          <Avatar user={{ name: fullName, avatarUrl }} size="md" />
         </Button>
       )}
     >
