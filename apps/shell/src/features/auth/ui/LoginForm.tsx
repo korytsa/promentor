@@ -54,7 +54,7 @@ export const LoginForm = ({ role }: { role: UserRole }) => {
       <div className="mt-3">
         <Button
           type="submit"
-          customVariant="authPrimary"
+          customVariant="hero"
           fullWidth={true}
           disabled={isPending}
         >

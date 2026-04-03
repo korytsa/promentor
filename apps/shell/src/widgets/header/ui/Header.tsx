@@ -45,7 +45,7 @@ export const Header = ({ user }: HeaderProps) => {
         <div className="flex items-center gap-x-4">
           <Button
             isIconOnly
-            customVariant="glass"
+            customVariant="surface"
             onClick={toggleMode}
             aria-label={themeToggleLabel}
             title={themeToggleLabel}
@@ -61,7 +61,7 @@ export const Header = ({ user }: HeaderProps) => {
           <div className="lg:hidden">
             <Button
               isIconOnly
-              customVariant="glass"
+              customVariant="surface"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
