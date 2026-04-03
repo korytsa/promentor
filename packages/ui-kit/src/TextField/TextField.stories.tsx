@@ -1,54 +1,48 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useState } from "react";
 import { TextField } from "./TextField";
 
 const meta = {
-  title: "ui-kit/TextField",
+  title: "Form/TextField",
   component: TextField,
   tags: ["autodocs"],
+  args: {
+    label: "Email",
+    placeholder: "mentor@example.com",
+    size: "sm",
+  },
+  argTypes: {
+    size: {
+      control: "select",
+      options: ["sm", "md", "lg"],
+    },
+  },
 } satisfies Meta<typeof TextField>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Default: Story = {};
+
+export const WithError: Story = {
   args: {
-    label: "Email",
-    placeholder: "you@example.com",
-    fullWidth: true,
+    error: "Please enter a valid email address",
+    defaultValue: "invalid-email",
   },
 };
 
-export const WithHint: Story = {
+export const Disabled: Story = {
   args: {
-    label: "Password",
-    type: "password",
-    helperText: "At least 8 characters.",
-    fullWidth: true,
+    disabled: true,
+    defaultValue: "mentor@example.com",
   },
 };
 
-export const WithErrorMessage: Story = {
-  args: {
-    label: "Email",
-    defaultValue: "invalid",
-    errorMessage: "Enter a valid email address.",
-    fullWidth: true,
-  },
-};
-
-export const ControlledErrorToggle: Story = {
-  render: function Controlled() {
-    const [value, setValue] = useState("");
-    const invalid = value.length > 0 && !value.includes("@");
-    return (
-      <TextField
-        label="Email"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        fullWidth
-        errorMessage={invalid ? "Must contain @" : undefined}
-      />
-    );
-  },
+export const Sizes: Story = {
+  render: () => (
+    <div className="space-y-4 max-w-md">
+      <TextField label="Small" size="sm" placeholder="Small input" />
+      <TextField label="Medium" size="md" placeholder="Medium input" />
+      <TextField label="Large" size="lg" placeholder="Large input" />
+    </div>
+  ),
 };

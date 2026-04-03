@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@promentorapp/ui-kit";
+import { Button, TextField } from "@promentorapp/ui-kit";
 import type { UserRole } from "@/entities/user/types";
 import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
 import { useRegisterMutation } from "../api";
@@ -8,7 +8,6 @@ import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { registerSchema } from "../model/schema";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
 import { AuthFormServerError } from "./AuthFormServerError";
-import { FormField } from "./FormField";
 
 export const RegisterForm = ({ role }: { role: UserRole }) => {
   const navigate = useNavigate();
@@ -39,26 +38,23 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
       <AuthFormServerError message={serverError} />
       <AuthFormOAuthDivider googleLabel="Sign up with Google" />
-      <FormField
+      <TextField
         label="Full Name"
         type="text"
-        autoComplete="name"
         placeholder="John Doe"
         error={errors.fullName?.message}
         {...register("fullName")}
       />
-      <FormField
+      <TextField
         label="Email"
         type="email"
-        autoComplete="email"
         placeholder="john@example.com"
         error={errors.email?.message}
         {...register("email")}
       />
-      <FormField
+      <TextField
         label="Password"
         type="password"
-        autoComplete="new-password"
         placeholder="At least 8 chars, 1 uppercase, 1 number"
         error={errors.password?.message}
         {...register("password")}

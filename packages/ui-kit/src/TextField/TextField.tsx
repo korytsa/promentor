@@ -1,41 +1,54 @@
-import {
-  TextField as MuiTextField,
-  type TextFieldProps as MuiTextFieldProps,
-} from "@mui/material";
-import { forwardRef } from "react";
-import { fieldControlSx } from "../Theme/fieldControlSx";
+import { InputHTMLAttributes } from "react";
+import { Typography } from "../Typography";
 
-export type TextFieldProps = Omit<MuiTextFieldProps, "variant"> & {
-  errorMessage?: string;
-  variant?: MuiTextFieldProps["variant"];
+export type TextFieldSize = "sm" | "md" | "lg";
+
+const TEXT_FIELD_SIZE_STYLES: Record<TextFieldSize, string> = {
+  sm: "h-12 rounded-lg px-3 text-sm",
+  md: "h-14 rounded-xl px-4 text-base",
+  lg: "h-16 rounded-2xl px-4 text-base",
 };
 
-export const TextField = forwardRef<HTMLDivElement, TextFieldProps>(
-  function TextField(
-    { errorMessage, error, helperText, sx, variant = "outlined", ...props },
-    ref,
-  ) {
-    const hasError = Boolean(errorMessage) || Boolean(error);
-    const helper =
-      errorMessage !== undefined && errorMessage !== ""
-        ? errorMessage
-        : helperText;
+export interface TextFieldProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "size"
+> {
+  label: string;
+  error?: string;
+  size?: TextFieldSize;
+}
 
-    return (
-      <MuiTextField
-        ref={ref}
-        variant={variant}
-        error={hasError}
-        helperText={helper}
-        sx={
-          Array.isArray(sx)
-            ? [fieldControlSx, ...sx]
-            : sx
-              ? [fieldControlSx, sx]
-              : fieldControlSx
-        }
+export const TextField = ({
+  label,
+  error,
+  size = "sm",
+  className,
+  ...props
+}: TextFieldProps) => {
+  return (
+    <label className="flex flex-col gap-2">
+      <Typography variantStyle="label" className="pm-text-secondary">
+        {label}
+      </Typography>
+      <input
+        className={[
+          "border bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
+          TEXT_FIELD_SIZE_STYLES[size],
+          error
+            ? "border-rose-500/80 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/30"
+            : "pm-border focus:border-[var(--pm-accent-cyan)] focus:ring-2 focus:ring-cyan-500/25",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
         {...props}
+        autoComplete="off"
       />
-    );
-  },
-);
+      {error ? (
+        <Typography variantStyle="error" className="text-rose-500">
+          {error}
+        </Typography>
+      ) : null}
+    </label>
+  );
+};
