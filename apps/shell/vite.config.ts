@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
       react(),
       federation({
         name: "shell",
+        exposes: {
+          "./authBridge": "./src/shared/auth/authBridge.ts",
+        },
         remotes: {
           chatApp: chatRemoteUrl,
           coachingApp: coachingRemoteUrl,
@@ -31,6 +34,16 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+    },
+    server: {
+      port: 5173,
+      strictPort: true,
+      cors: true,
+    },
+    preview: {
+      port: 5173,
+      strictPort: true,
+      cors: true,
     },
     build: {
       target: "esnext",
