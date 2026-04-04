@@ -29,6 +29,8 @@
   --pm-bg-linear-top: rgba(255, 255, 255, 0.55);
   --pm-bg-linear-bottom: rgba(224, 242, 254, 0.58);
   --pm-grid-line: rgba(71, 85, 105, 0.08);
+  --auth-input-bg: var(--pm-surface);
+  --auth-input-text: var(--pm-text-primary);
 }
 
 [data-theme="dark"] {
@@ -58,6 +60,8 @@
   --pm-bg-linear-top: rgba(10, 25, 47, 0.28);
   --pm-bg-linear-bottom: rgba(2, 6, 23, 0.92);
   --pm-grid-line: rgba(148, 163, 184, 0.08);
+  --auth-input-bg: color-mix(in srgb, rgb(15 23 42) 70%, rgb(2 6 23));
+  --auth-input-text: rgb(241 245 249);
 }
 
 html,
@@ -74,8 +78,23 @@ body {
 
 @layer components {
   .auth-form-input {
-    --auth-input-bg: transparent;
     background-color: var(--auth-input-bg);
+    color: var(--auth-input-text);
+  }
+
+  .auth-form-input:-webkit-autofill,
+  .auth-form-input:-webkit-autofill:hover,
+  .auth-form-input:-webkit-autofill:focus,
+  .auth-form-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--auth-input-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--auth-input-bg) inset !important;
+    -webkit-text-fill-color: var(--auth-input-text) !important;
+    caret-color: var(--auth-input-text);
+  }
+
+  .auth-form-input:-moz-autofill {
+    background-color: var(--auth-input-bg) !important;
+    color: var(--auth-input-text) !important;
   }
 }
 

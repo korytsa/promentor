@@ -32,7 +32,7 @@ export const TextField = ({
       </Typography>
       <input
         className={[
-          "border bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
+          "auth-form-input border bg-[var(--pm-surface)] pm-text-primary placeholder:pm-text-muted outline-none transition-all",
           TEXT_FIELD_SIZE_STYLES[size],
           error
             ? "border-rose-500/80 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/30"

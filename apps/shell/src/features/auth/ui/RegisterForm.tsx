@@ -41,6 +41,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
       <TextField
         label="Full Name"
         type="text"
+        autoComplete="name"
         placeholder="John Doe"
         error={errors.fullName?.message}
         {...register("fullName")}
@@ -48,6 +49,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
       <TextField
         label="Email"
         type="email"
+        autoComplete="email"
         placeholder="john@example.com"
         error={errors.email?.message}
         {...register("email")}
@@ -55,6 +57,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
       <TextField
         label="Password"
         type="password"
+        autoComplete="new-password"
         placeholder="At least 8 chars, 1 uppercase, 1 number"
         error={errors.password?.message}
         {...register("password")}
