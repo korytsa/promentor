@@ -31,6 +31,8 @@ const lightThemeVars: ThemeCssVars = {
   "--pm-bg-linear-top": "rgba(255, 255, 255, 0.55)",
   "--pm-bg-linear-bottom": "rgba(224, 242, 254, 0.58)",
   "--pm-grid-line": "rgba(71, 85, 105, 0.08)",
+  "--auth-input-bg": "rgba(255, 255, 255, 0.84)",
+  "--auth-input-text": "#0f172a",
 };
 
 const darkThemeVars: ThemeCssVars = {
@@ -60,6 +62,8 @@ const darkThemeVars: ThemeCssVars = {
   "--pm-bg-linear-top": "rgba(10, 25, 47, 0.28)",
   "--pm-bg-linear-bottom": "rgba(2, 6, 23, 0.92)",
   "--pm-grid-line": "rgba(148, 163, 184, 0.08)",
+  "--auth-input-bg": "color-mix(in srgb, rgb(15 23 42) 70%, rgb(2 6 23))",
+  "--auth-input-text": "rgb(241 245 249)",
 };
 
 const themeVarsByMode: Record<AppThemeMode, ThemeCssVars> = {

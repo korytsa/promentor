@@ -35,11 +35,11 @@ export const GhostIcon: Story = {
   },
 };
 
-export const GlassIcon: Story = {
+export const SurfaceIcon: Story = {
   args: {
     children: "☰",
     isIconOnly: true,
-    customVariant: "glass",
+    customVariant: "surface",
     "aria-label": "Menu",
   },
   parameters: {
@@ -57,6 +57,16 @@ export const MenuItemDanger: Story = {
     ),
     variant: "text",
     customVariant: "menuItemDanger",
+  },
+  parameters: {
+    backgrounds: { default: "dark" },
+  },
+};
+
+export const HeroCustom: Story = {
+  args: {
+    children: "Create account",
+    customVariant: "hero",
   },
   parameters: {
     backgrounds: { default: "dark" },

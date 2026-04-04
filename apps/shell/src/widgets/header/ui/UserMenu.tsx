@@ -42,6 +42,7 @@ export const UserMenu = ({
           aria-controls="user-menu"
           aria-label="User menu"
           customVariant="menuTrigger"
+          className="group"
         >
           <div className="hidden md:flex flex-col gap-1 text-right">
             <Typography
@@ -52,13 +53,13 @@ export const UserMenu = ({
             </Typography>
             <Typography
               component="h2"
-              className="user-menu-trigger-title text-xs uppercase font-bold transition-colors pm-text-secondary"
+              className="text-xs uppercase font-bold transition-colors pm-text-secondary group-hover:pm-text-primary"
             >
               {fullName}
             </Typography>
           </div>
 
-          <Avatar src={avatarUrl} alt={fullName} size="md" />
+          <Avatar user={{ name: fullName, avatarUrl }} size="md" />
         </Button>
       )}
     >

@@ -13,15 +13,12 @@ export const GoogleAuthButton = ({
   return (
     <Button
       type="button"
-      customVariant="authGlass"
       disabled={true}
       fullWidth={true}
+      customVariant="surface"
       aria-label={comingSoonLabel}
-      title="Google authentication is coming soon"
       sx={{
-        color: "var(--pm-text-secondary)",
-        border: "1px solid var(--pm-border)",
-        backgroundColor: "var(--pm-surface)",
+        minHeight: "40px",
       }}
     >
       <FcGoogle size={18} aria-hidden="true" className="shrink-0" />

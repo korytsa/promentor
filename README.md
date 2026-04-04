@@ -6,7 +6,7 @@ Monorepo: **Nest** (`apps/api`), **Vite/React shell** (`apps/shell`), shared **`
 
 - [promentor](https://github.com/korytsa/promentor)
 - [promentor-chat](https://github.com/korytsa/promentor-chat)
-- [promentor-coaching](https://github.com/korytsa/promentor-coaching)
+- [promentor-coaching](https://github.com/Webprojon/promentor-coaching)
 
 ## Setup
 
