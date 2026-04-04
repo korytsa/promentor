@@ -35,6 +35,10 @@ type GuestRouteConfig = {
   element: ReactNode;
 };
 
+function isChatRoute(path: string) {
+  return path === "/chat" || path.startsWith("/chat/");
+}
+
 const remoteRoutes: RemoteRouteConfig[] = [
   {
     path: "/chat",
@@ -155,10 +159,14 @@ export function App() {
           path={path}
           element={
             <ProtectedRemoteRoute title={title} loadingText={loadingText}>
-              <div className="flex flex-1 w-full h-[calc(100vh-130px)] flex-row">
-                <ChatSidebar />
-                {element}
-              </div>
+              {isChatRoute(path) ? (
+                <div className="flex flex-1 w-full h-[calc(100vh-130px)] flex-row">
+                  <ChatSidebar />
+                  {element}
+                </div>
+              ) : (
+                element
+              )}
             </ProtectedRemoteRoute>
           }
         />
