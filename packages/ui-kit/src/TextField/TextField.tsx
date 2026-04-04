@@ -42,7 +42,6 @@ export const TextField = ({
           .filter(Boolean)
           .join(" ")}
         {...props}
-        autoComplete="off"
       />
       {error ? (
         <Typography variantStyle="error" className="text-rose-500">

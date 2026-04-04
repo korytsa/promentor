@@ -14,7 +14,7 @@ export type AvatarProps = {
 const sizeClassName: Record<AvatarProps["size"], string> = {
   sm: "h-8 w-8 text-xs",
   md: "h-10 w-10 text-sm",
-  lg: "h-18 w-18 text-2xl",
+  lg: "h-20 w-20 text-2xl",
 };
 
 function getInitial(name: string): string {
