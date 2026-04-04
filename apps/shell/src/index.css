@@ -72,8 +72,8 @@ body,
 
 body {
   overflow-x: hidden;
-  background-color: var(--pm-bg);
-  color: var(--pm-text-primary);
+  background-color: var(--pm-bg, #f4f8ff);
+  color: var(--pm-text-primary, #0f172a);
 }
 
 @layer components {

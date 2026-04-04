@@ -1,6 +1,6 @@
 {
   "name": "@promentorapp/ui-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MUI-based shared UI for ProMentor frontend apps",
   "type": "module",
   "license": "MIT",

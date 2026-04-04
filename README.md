@@ -68,6 +68,15 @@ pnpm dev:web
 - Exposed modules must keep default export as React components.
 - `react` and `react-dom` versions must stay compatible between host and remotes.
 
+### Theme contract for remotes
+
+- Source of truth is `document.documentElement`:
+  - `data-theme="light|dark"`
+  - `dark` class (for Tailwind `darkMode: "class"`).
+- Theme mode persistence key: `promentor-theme-mode`.
+- `@promentorapp/ui-kit` `AppThemeProvider` sets DOM theme attributes and shared CSS variables (`--pm-*`) on `<html>`.
+- Remote apps should consume `--pm-*` tokens (`var(--pm-...)`) and should not own an independent global theme state when mounted inside shell.
+
 ### Deploy hosts
 
 - Shell (Vercel): [https://promentor-alpha.vercel.app](https://promentor-alpha.vercel.app)
