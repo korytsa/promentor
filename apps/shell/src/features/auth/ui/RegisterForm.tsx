@@ -4,6 +4,7 @@ import { Button, TextField } from "@promentorapp/ui-kit";
 import type { UserRole } from "@/entities/user/types";
 import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
 import { useRegisterMutation } from "../api";
+import { startGoogleAuth } from "../model/googleAuth";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { registerSchema } from "../model/schema";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
@@ -37,7 +38,13 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
       <AuthFormServerError message={serverError} />
-      <AuthFormOAuthDivider googleLabel="Sign up with Google" />
+      <AuthFormOAuthDivider
+        googleLabel="Sign up with Google"
+        onGoogleClick={() => {
+          startGoogleAuth({ role, mode: "register" });
+        }}
+        disabled={isPending}
+      />
       <TextField
         label="Full Name"
         type="text"

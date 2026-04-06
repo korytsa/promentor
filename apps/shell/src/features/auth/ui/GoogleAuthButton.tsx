@@ -3,26 +3,28 @@ import { FcGoogle } from "react-icons/fc";
 
 interface GoogleAuthButtonProps {
   label?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 export const GoogleAuthButton = ({
   label = "Continue with Google",
+  onClick,
+  disabled = false,
 }: GoogleAuthButtonProps) => {
-  const comingSoonLabel = `${label} (Coming soon)`;
-
   return (
     <Button
       type="button"
-      disabled={true}
       fullWidth={true}
       customVariant="surface"
-      aria-label={comingSoonLabel}
+      onClick={onClick}
+      disabled={disabled}
       sx={{
-        minHeight: "40px",
+        minHeight: "45px",
       }}
     >
       <FcGoogle size={18} aria-hidden="true" className="shrink-0" />
-      {comingSoonLabel}
+      {label}
     </Button>
   );
 };
