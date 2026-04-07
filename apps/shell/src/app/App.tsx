@@ -160,7 +160,7 @@ export function App() {
           element={
             <ProtectedRemoteRoute title={title} loadingText={loadingText}>
               {isChatRoute(path) ? (
-                <div className="flex flex-1 w-full h-[calc(100vh-130px)] flex-row">
+                <div className="flex flex-1 w-full h-[calc(100vh-110px)] gap-2 flex-row">
                   <ChatSidebar />
                   {element}
                 </div>
