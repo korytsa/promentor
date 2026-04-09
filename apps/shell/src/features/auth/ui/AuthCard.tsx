@@ -22,7 +22,7 @@ export const AuthCard = ({ role, mode, children }: AuthCardProps) => {
     mode === "login" ? "Create account" : "I already have an account";
 
   return (
-    <section className="w-full max-w-xl rounded-3xl border border-[var(--pm-border)] p-7 shadow-[0_30px_100px_rgba(6,182,212,0.2)] md:p-8">
+    <section className="w-full max-w-xl rounded-xl border border-[var(--pm-border)] p-7 shadow-[0_30px_100px_rgba(6,182,212,0.2)] md:p-8">
       <Typography
         variantStyle="eyebrow"
         className="text-[var(--pm-accent-cyan)]"
@@ -45,7 +45,7 @@ export const AuthCard = ({ role, mode, children }: AuthCardProps) => {
               to={getAuthRoute(mode, item.role)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "rounded-xl px-4 py-3 text-sm transition-all duration-300",
+                "rounded-lg px-4 py-3 text-sm transition-all duration-300",
                 active
                   ? "bg-gradient-to-br from-cyan-400/25 to-blue-500/20 text-cyan-100 border border-cyan-300/40 shadow-[0_10px_30px_rgba(14,165,233,0.25)]"
                   : "text-slate-400 border border-white/15 hover:text-slate-200 hover:bg-white/10",

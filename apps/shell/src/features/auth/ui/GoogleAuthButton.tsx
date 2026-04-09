@@ -21,6 +21,7 @@ export const GoogleAuthButton = ({
       disabled={disabled}
       sx={{
         minHeight: "45px",
+        borderRadius: ".5rem",
       }}
     >
       <FcGoogle size={18} aria-hidden="true" className="shrink-0" />
