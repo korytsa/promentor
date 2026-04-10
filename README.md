@@ -82,6 +82,13 @@ pnpm dev:web
 - Shell (Vercel): [https://promentor-alpha.vercel.app](https://promentor-alpha.vercel.app)
 - API (Railway): [https://promentor-production.up.railway.app](https://promentor-production.up.railway.app)
 
+**Module federation remotes (production):**
+
+- Chat: [promentor-chat.vercel.app](https://promentor-chat.vercel.app) → `remoteEntry` at `https://promentor-chat.vercel.app/assets/remoteEntry.js`
+- Coaching: [promentor-coaching.vercel.app](https://promentor-coaching.vercel.app) → `https://promentor-coaching.vercel.app/assets/remoteEntry.js`
+
+The shell Vite build reads `VITE_CHAT_REMOTE_URL` and `VITE_COACHING_REMOTE_URL`. They are set in [`vercel.json`](vercel.json) for the shell deployment so the host loads these remotes by default. Override in the Vercel project **Environment Variables** if needed.
+
 ## Env
 
 - Shell: `.env.example` → `apps/shell/.env` (`VITE_*` for browser).

@@ -7,10 +7,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const chatRemoteUrl =
-    env.VITE_CHAT_REMOTE_URL || "http://localhost:4174/assets/remoteEntry.js";
+    env.VITE_CHAT_REMOTE_URL ||
+    "https://promentor-chat.vercel.app/assets/remoteEntry.js";
   const coachingRemoteUrl =
     env.VITE_COACHING_REMOTE_URL ||
-    "http://localhost:4175/assets/remoteEntry.js";
+    "https://promentor-coaching.vercel.app/assets/remoteEntry.js";
 
   return {
     optimizeDeps: {
