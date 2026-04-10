@@ -16,6 +16,8 @@ const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
 const ExploreTeamsPage = lazy(() => import("coachingApp/ExploreTeamsPage"));
 const MentorsPage = lazy(() => import("coachingApp/MentorsPage"));
 const SuggestionPage = lazy(() => import("coachingApp/SuggestionPage"));
+const RequestsPage = lazy(() => import("coachingApp/RequestsPage"));
+const ProfilePage = lazy(() => import("coachingApp/ProfilePage"));
 
 type ProtectedRemoteRouteProps = {
   title: string;
@@ -89,6 +91,18 @@ const remoteRoutes: RemoteRouteConfig[] = [
     element: <WorkoutPlansPage />,
   },
   {
+    path: "/requests",
+    title: "Requests",
+    loadingText: "Loading requests...",
+    element: <RequestsPage />,
+  },
+  {
+    path: "/profile",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ProfilePage />,
+  },
+  {
     path: "/explore-teams",
     title: "Explore Teams",
     loadingText: "Loading explore teams...",
@@ -160,7 +174,7 @@ export function App() {
           element={
             <ProtectedRemoteRoute title={title} loadingText={loadingText}>
               {isChatRoute(path) ? (
-                <div className="flex flex-1 w-full h-[calc(100vh-130px)] flex-row">
+                <div className="flex flex-1 w-full h-[calc(100vh-110px)] gap-2 flex-row">
                   <ChatSidebar />
                   {element}
                 </div>

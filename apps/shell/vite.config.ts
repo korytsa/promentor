@@ -27,7 +27,12 @@ export default defineConfig(({ mode }) => {
           chatApp: chatRemoteUrl,
           coachingApp: coachingRemoteUrl,
         },
-        shared: ["react", "react-dom", "react-router-dom"],
+        shared: [
+          "react",
+          "react-dom",
+          "react-router-dom",
+          "@promentorapp/ui-kit",
+        ],
       }),
     ],
     resolve: {

@@ -14,6 +14,7 @@ import { REFRESH_TOKEN_COOKIE } from "./constants/auth-cookies.constants";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { AuthUserResponse } from "./types/auth-response.type";
+import { GoogleAuthProfile } from "./types/google-auth-profile.type";
 import { JwtPayload } from "./types/jwt-payload.type";
 import {
   clearAuthCookies,
@@ -23,6 +24,10 @@ import {
 } from "./utils/auth-cookies.util";
 
 const BCRYPT_SALT_ROUNDS = 12;
+
+function isGoogleMentorSignupAllowed(): boolean {
+  return process.env.ALLOW_GOOGLE_MENTOR_SIGNUP?.trim() === "true";
+}
 
 @Injectable()
 export class AuthService {
@@ -70,6 +75,52 @@ export class AuthService {
     }
 
     if (user.role !== dto.role) {
+      throw new UnauthorizedException(
+        user.role === UserRole.MENTOR
+          ? "This account is a mentor account. Use the mentor sign-in page."
+          : "This account is a regular user account. Use the regular user sign-in page.",
+      );
+    }
+
+    await this.issueSession(res, user);
+    return this.mapUser(user);
+  }
+
+  async loginWithGoogle(
+    profile: GoogleAuthProfile,
+    role: UserRole,
+    res: Response,
+  ): Promise<AuthUserResponse> {
+    const email = profile.email.toLowerCase();
+    const fullName = profile.fullName.trim();
+
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      if (role === UserRole.MENTOR && !isGoogleMentorSignupAllowed()) {
+        throw new UnauthorizedException(
+          "Mentor Google sign-up is disabled. Contact support.",
+        );
+      }
+
+      const generatedPasswordHash = await hash(
+        randomBytes(48).toString("hex"),
+        BCRYPT_SALT_ROUNDS,
+      );
+
+      user = await this.prisma.user.create({
+        data: {
+          fullName,
+          email,
+          passwordHash: generatedPasswordHash,
+          role,
+        },
+      });
+    }
+
+    if (user.role !== role) {
       throw new UnauthorizedException(
         user.role === UserRole.MENTOR
           ? "This account is a mentor account. Use the mentor sign-in page."
