@@ -58,6 +58,18 @@ declare module "coachingApp/WorkoutPlansPage" {
   export default WorkoutPlansPage;
 }
 
+declare module "coachingApp/RequestsPage" {
+  import type { ComponentType } from "react";
+  const RequestsPage: ComponentType;
+  export default RequestsPage;
+}
+
+declare module "coachingApp/ProfilePage" {
+  import type { ComponentType } from "react";
+  const ProfilePage: ComponentType;
+  export default ProfilePage;
+}
+
 declare module "coachingApp/ExploreTeamsPage" {
   import type { ComponentType } from "react";
   const ExploreTeamsPage: ComponentType;

@@ -7,10 +7,12 @@ import { useLoginMutation } from "../api";
 import { startGoogleAuth } from "../model/googleAuth";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { loginSchema } from "../model/schema";
+import { useOauthFailedSearchParam } from "../model/useOauthFailedSearchParam";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
 import { AuthFormServerError } from "./AuthFormServerError";
 
 export const LoginForm = ({ role }: { role: UserRole }) => {
+  const oauthFailedMessage = useOauthFailedSearchParam();
   const navigate = useNavigate();
   const mutation = useLoginMutation();
   const {
@@ -36,7 +38,7 @@ export const LoginForm = ({ role }: { role: UserRole }) => {
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <AuthFormServerError message={serverError} />
+      <AuthFormServerError message={oauthFailedMessage ?? serverError} />
       <AuthFormOAuthDivider
         googleLabel="Sign in with Google"
         onGoogleClick={() => {

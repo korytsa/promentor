@@ -16,6 +16,8 @@ const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
 const ExploreTeamsPage = lazy(() => import("coachingApp/ExploreTeamsPage"));
 const MentorsPage = lazy(() => import("coachingApp/MentorsPage"));
 const SuggestionPage = lazy(() => import("coachingApp/SuggestionPage"));
+const RequestsPage = lazy(() => import("coachingApp/RequestsPage"));
+const ProfilePage = lazy(() => import("coachingApp/ProfilePage"));
 
 type ProtectedRemoteRouteProps = {
   title: string;
@@ -87,6 +89,18 @@ const remoteRoutes: RemoteRouteConfig[] = [
     title: "Workout Plans",
     loadingText: "Loading workout plans...",
     element: <WorkoutPlansPage />,
+  },
+  {
+    path: "/requests",
+    title: "Requests",
+    loadingText: "Loading requests...",
+    element: <RequestsPage />,
+  },
+  {
+    path: "/profile",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ProfilePage />,
   },
   {
     path: "/explore-teams",

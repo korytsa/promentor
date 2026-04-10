@@ -7,10 +7,12 @@ import { useRegisterMutation } from "../api";
 import { startGoogleAuth } from "../model/googleAuth";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { registerSchema } from "../model/schema";
+import { useOauthFailedSearchParam } from "../model/useOauthFailedSearchParam";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
 import { AuthFormServerError } from "./AuthFormServerError";
 
 export const RegisterForm = ({ role }: { role: UserRole }) => {
+  const oauthFailedMessage = useOauthFailedSearchParam();
   const navigate = useNavigate();
   const mutation = useRegisterMutation();
   const {
@@ -37,7 +39,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <AuthFormServerError message={serverError} />
+      <AuthFormServerError message={oauthFailedMessage ?? serverError} />
       <AuthFormOAuthDivider
         googleLabel="Sign up with Google"
         onGoogleClick={() => {
