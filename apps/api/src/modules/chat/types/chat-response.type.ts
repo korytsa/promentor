@@ -4,15 +4,19 @@ export type ChatLastMessageResponse = {
   id: string;
   message: string;
   senderId: string;
+  senderFullName: string;
+  isOwn: boolean;
   createdAt: Date;
 };
 
 export type ChatRoomListItemResponse = {
   id: string;
   name: string | null;
+  displayTitle: string;
   type: ChatRoomTypeResponse;
   updatedAt: Date;
   membersCount: number;
+  avatarUrls: string[];
   lastMessage: ChatLastMessageResponse | null;
 };
 

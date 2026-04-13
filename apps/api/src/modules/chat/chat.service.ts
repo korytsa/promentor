@@ -4,12 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { ChatRoomType, Prisma } from "@prisma/client";
-import { PrismaService } from "../prisma/prisma.service";
+import { ChatRoomType, Prisma, PrismaClient } from "@prisma/client";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
 import { SendMessageDto } from "./dto/send-message.dto";
 import {
+  ChatLastMessageResponse,
   ChatMessageResponse,
   ChatMessagesPageResponse,
   ChatRoomListItemResponse,
@@ -21,41 +21,94 @@ const DEFAULT_MESSAGES_OFFSET = 0;
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async listRooms(userId: string): Promise<ChatRoomListItemResponse[]> {
-    const memberships = await this.prisma.roomMember.findMany({
-      where: { userId },
-      orderBy: { room: { updatedAt: "desc" } },
+    const rooms = await this.prisma.chatRoom.findMany({
+      where: {
+        members: {
+          some: { userId },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
       include: {
-        room: {
+        messages: {
+          select: {
+            id: true,
+            message: true,
+            senderId: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+        _count: {
+          select: { members: true },
+        },
+        members: {
+          orderBy: { joinedAt: "asc" },
           include: {
-            messages: {
+            user: {
               select: {
                 id: true,
-                message: true,
-                senderId: true,
-                createdAt: true,
+                fullName: true,
+                avatarUrl: true,
               },
-              orderBy: { createdAt: "desc" },
-              take: 1,
-            },
-            _count: {
-              select: { members: true },
             },
           },
         },
       },
     });
 
-    return memberships.map((membership) => ({
-      id: membership.room.id,
-      name: membership.room.name,
-      type: this.toApiRoomType(membership.room.type),
-      updatedAt: membership.room.updatedAt,
-      membersCount: membership.room._count.members,
-      lastMessage: membership.room.messages[0] ?? null,
-    }));
+    return rooms.map((room) => {
+      const members = room.members;
+      const apiType = this.toApiRoomType(room.type);
+
+      const otherMember =
+        room.type === ChatRoomType.PRIVATE
+          ? members.find((m) => m.userId !== userId)
+          : undefined;
+
+      const displayTitle =
+        room.type === ChatRoomType.PRIVATE
+          ? (otherMember?.user.fullName ?? room.name ?? "Chat")
+          : room.name?.trim() || "Group chat";
+
+      const avatarUrls =
+        room.type === ChatRoomType.PRIVATE
+          ? otherMember?.user.avatarUrl
+            ? [otherMember.user.avatarUrl]
+            : []
+          : members
+              .map((m) => m.user.avatarUrl)
+              .filter((url): url is string => Boolean(url?.length))
+              .slice(0, 3);
+
+      const last = room.messages[0];
+      let lastMessage: ChatLastMessageResponse | null = null;
+      if (last) {
+        const senderMember = members.find((m) => m.userId === last.senderId);
+        lastMessage = {
+          id: last.id,
+          message: last.message,
+          senderId: last.senderId,
+          senderFullName: senderMember?.user.fullName ?? "Unknown",
+          isOwn: last.senderId === userId,
+          createdAt: last.createdAt,
+        };
+      }
+
+      return {
+        id: room.id,
+        name: room.name,
+        displayTitle,
+        type: apiType,
+        updatedAt: room.updatedAt,
+        membersCount: room._count.members,
+        avatarUrls,
+        lastMessage,
+      };
+    });
   }
 
   async listMessages(
@@ -236,27 +289,28 @@ export class ChatService {
   }
 
   async assertCanAccessRoom(roomId: string, userId: string): Promise<void> {
-    const room = await this.prisma.chatRoom.findUnique({
+    const roomWithMembership = await this.prisma.chatRoom.findFirst({
+      where: {
+        id: roomId,
+        members: {
+          some: { userId },
+        },
+      },
+      select: { id: true },
+    });
+    if (roomWithMembership) {
+      return;
+    }
+
+    const roomExists = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       select: { id: true },
     });
-    if (!room) {
+    if (!roomExists) {
       throw new NotFoundException("Room not found");
     }
 
-    const member = await this.prisma.roomMember.findUnique({
-      where: {
-        roomId_userId: {
-          roomId,
-          userId,
-        },
-      },
-      select: { roomId: true },
-    });
-
-    if (!member) {
-      throw new ForbiddenException("You do not have access to this room");
-    }
+    throw new ForbiddenException("You do not have access to this room");
   }
 
   private async findPrivateRoomByPairKey(

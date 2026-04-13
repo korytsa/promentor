@@ -164,7 +164,10 @@
           "id": { "type": "string" },
           "fullName": { "type": "string" },
           "email": { "type": "string" },
-          "role": { "$ref": "#/components/schemas/UserRole" }
+          "role": { "$ref": "#/components/schemas/UserRole" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "jobTitle": { "type": "string", "nullable": true },
+          "about": { "type": "string", "nullable": true }
         },
         "required": ["id", "fullName", "email", "role"]
       },
