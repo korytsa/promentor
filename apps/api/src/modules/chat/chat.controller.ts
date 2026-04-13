@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   UseGuards,
@@ -40,7 +41,7 @@ export class ChatController {
 
   @Get(":id/messages")
   listRoomMessages(
-    @Param("id") roomId: string,
+    @Param("id", ParseUUIDPipe) roomId: string,
     @CurrentUser() user: JwtPayload,
     @Query() query: ListRoomMessagesQueryDto,
   ): Promise<ChatMessagesPageResponse> {
@@ -49,7 +50,7 @@ export class ChatController {
 
   @Post(":id/messages")
   sendRoomMessage(
-    @Param("id") roomId: string,
+    @Param("id", ParseUUIDPipe) roomId: string,
     @CurrentUser() user: JwtPayload,
     @Body() dto: SendMessageDto,
   ): Promise<ChatMessageResponse> {
@@ -59,7 +60,7 @@ export class ChatController {
   @Post(":id/read")
   @HttpCode(HttpStatus.NO_CONTENT)
   markRoomRead(
-    @Param("id") roomId: string,
+    @Param("id", ParseUUIDPipe) roomId: string,
     @CurrentUser() user: JwtPayload,
     @Body() dto: MarkRoomReadDto,
   ): Promise<void> {
@@ -68,7 +69,7 @@ export class ChatController {
 
   @Get(":id")
   getRoom(
-    @Param("id") roomId: string,
+    @Param("id", ParseUUIDPipe) roomId: string,
     @CurrentUser() user: JwtPayload,
   ): Promise<ChatRoomDetailResponse> {
     return this.chatService.getRoomById(roomId, user.sub);
@@ -77,7 +78,7 @@ export class ChatController {
   @Delete(":id/members/me")
   @HttpCode(HttpStatus.NO_CONTENT)
   leaveRoom(
-    @Param("id") roomId: string,
+    @Param("id", ParseUUIDPipe) roomId: string,
     @CurrentUser() user: JwtPayload,
   ): Promise<void> {
     return this.chatService.leaveRoom(roomId, user.sub);

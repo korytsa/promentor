@@ -1,12 +1,15 @@
-import cookieParser from "cookie-parser";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { JwtService } from "@nestjs/jwt";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserRole } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "@jest/globals";
 import request from "supertest";
+import {
+  applyHttpAppSetup,
+  applyTrustProxy,
+} from "../src/bootstrap/http-app-setup";
 import { AppModule } from "../src/app.module";
 import { JWT_ACCESS_EXPIRES_IN_SECONDS } from "../src/modules/auth/config/auth-session.config";
 import { PrismaModule } from "../src/modules/prisma/prisma.module";
@@ -15,7 +18,7 @@ import { UsersModule } from "../src/modules/users/users.module";
 import { FakePrismaService } from "./fake-prisma.e2e";
 
 describe("Users search (e2e)", () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let jwtService: JwtService;
   let accessTokenUser1: string;
   let fakePrisma: FakePrismaService;
@@ -31,15 +34,9 @@ describe("Users search (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    applyTrustProxy(app);
+    applyHttpAppSetup(app);
 
     await app.init();
     jwtService = app.get(JwtService);
@@ -105,7 +102,7 @@ describe("Users search (e2e)", () => {
 });
 
 describe("GET /users/search throttling (e2e)", () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let accessToken: string;
 
   beforeAll(async () => {
@@ -135,15 +132,9 @@ describe("GET /users/search throttling (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    applyTrustProxy(app);
+    applyHttpAppSetup(app);
 
     await app.init();
     const jwtService = app.get(JwtService);

@@ -1,11 +1,14 @@
-import cookieParser from "cookie-parser";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserRole } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "@jest/globals";
 import request from "supertest";
 import { io, type Socket } from "socket.io-client";
+import {
+  applyHttpAppSetup,
+  applyTrustProxy,
+} from "../src/bootstrap/http-app-setup";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/modules/prisma/prisma.service";
 import {
@@ -35,7 +38,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 describe("Chat backend (e2e)", () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let jwtService: JwtService;
   let accessTokenUser1: string;
   let accessTokenUser2: string;
@@ -54,15 +57,9 @@ describe("Chat backend (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    applyTrustProxy(app);
+    applyHttpAppSetup(app);
 
     await app.listen(0);
     baseUrl = await app.getUrl();
@@ -118,6 +115,13 @@ describe("Chat backend (e2e)", () => {
       .post("/rooms/5db0da20-b916-4c44-8ad6-b4bea76f0ea5/messages")
       .set("Cookie", [`access_token=${accessTokenUser2}`])
       .send({ message: "   " })
+      .expect(400);
+  });
+
+  it("returns 400 when room id is not a valid UUID", async () => {
+    await request(app.getHttpServer())
+      .get("/rooms/not-a-uuid/messages")
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
       .expect(400);
   });
 
