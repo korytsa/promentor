@@ -9,7 +9,7 @@ import { io, type Socket } from "socket.io-client";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/modules/prisma/prisma.service";
 
-type User = { id: string };
+type User = { id: string; fullName: string; avatarUrl: string | null };
 type Room = {
   id: string;
   name: string | null;
@@ -20,7 +20,7 @@ type Room = {
   updatedAt: Date;
 };
 type RoomWithCount = Room & { _count: { members: number } };
-type Member = { roomId: string; userId: string };
+type Member = { roomId: string; userId: string; lastReadAt?: Date };
 type Message = {
   id: string;
   roomId: string;
@@ -51,7 +51,11 @@ function sleep(ms: number): Promise<void> {
 }
 
 class FakePrismaService {
-  users: User[] = [{ id: "user_1" }, { id: "user_2" }, { id: "user_3" }];
+  users: User[] = [
+    { id: "user_1", fullName: "User One", avatarUrl: null },
+    { id: "user_2", fullName: "User Two", avatarUrl: null },
+    { id: "user_3", fullName: "User Three", avatarUrl: null },
+  ];
   rooms: Room[] = [
     {
       id: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5",
@@ -71,8 +75,13 @@ class FakePrismaService {
 
   $connect = async () => undefined;
   $disconnect = async () => undefined;
-  $transaction = async <T>(operations: Promise<T>[]): Promise<T[]> => {
-    return Promise.all(operations);
+  $transaction = async <R>(
+    arg: Promise<R>[] | ((tx: FakePrismaService) => Promise<R>),
+  ): Promise<R | R[]> => {
+    if (typeof arg === "function") {
+      return arg(this);
+    }
+    return Promise.all(arg);
   };
 
   user = {
@@ -88,6 +97,26 @@ class FakePrismaService {
   };
 
   chatRoom = {
+    findFirst: async (args: {
+      where: {
+        id: string;
+        members: { some: { userId: string } };
+      };
+      select?: { id: true };
+    }): Promise<{ id: string } | null> => {
+      const room = this.rooms.find((entry) => entry.id === args.where.id);
+      if (!room) {
+        return null;
+      }
+      const userId = args.where.members.some.userId;
+      const isMember = this.members.some(
+        (member) => member.roomId === room.id && member.userId === userId,
+      );
+      if (!isMember) {
+        return null;
+      }
+      return { id: room.id };
+    },
     findUnique: async (args: {
       where: { id?: string; privatePairKey?: string };
       select?: { id: true };
@@ -136,7 +165,7 @@ class FakePrismaService {
         createdBy: string;
         members: {
           createMany: {
-            data: Array<{ userId: string }>;
+            data: Array<{ userId: string; lastReadAt?: Date }>;
           };
         };
       };
@@ -154,7 +183,13 @@ class FakePrismaService {
       };
       this.rooms.push(room);
       args.data.members.createMany.data.forEach((member) => {
-        this.members.push({ roomId: room.id, userId: member.userId });
+        this.members.push({
+          roomId: room.id,
+          userId: member.userId,
+          ...(member.lastReadAt !== undefined
+            ? { lastReadAt: member.lastReadAt }
+            : {}),
+        });
       });
       return {
         ...room,
@@ -178,6 +213,23 @@ class FakePrismaService {
       );
       return found ? { roomId: found.roomId } : null;
     },
+    update: async (args: {
+      where: { roomId_userId: { roomId: string; userId: string } };
+      data: { lastReadAt: Date };
+    }): Promise<{ roomId: string; userId: string }> => {
+      const member = this.members.find(
+        (m) =>
+          m.roomId === args.where.roomId_userId.roomId &&
+          m.userId === args.where.roomId_userId.userId,
+      );
+      if (member) {
+        member.lastReadAt = args.data.lastReadAt;
+      }
+      return {
+        roomId: args.where.roomId_userId.roomId,
+        userId: args.where.roomId_userId.userId,
+      };
+    },
   };
 
   chatMessage = {
@@ -189,8 +241,14 @@ class FakePrismaService {
         senderId: true;
         message: true;
         createdAt: true;
+        sender?: { select: { id: true; fullName: true; avatarUrl: true } };
       };
-    }): Promise<Message> => {
+    }): Promise<
+      | Message
+      | (Message & {
+          sender: { id: string; fullName: string; avatarUrl: string | null };
+        })
+    > => {
       const created: Message = {
         id: crypto.randomUUID(),
         roomId: args.data.roomId,
@@ -199,6 +257,17 @@ class FakePrismaService {
         createdAt: new Date(),
       };
       this.messages.push(created);
+      if (args.select.sender) {
+        const senderUser = this.users.find((u) => u.id === args.data.senderId);
+        return {
+          ...created,
+          sender: {
+            id: senderUser?.id ?? args.data.senderId,
+            fullName: senderUser?.fullName ?? "Unknown",
+            avatarUrl: senderUser?.avatarUrl ?? null,
+          },
+        };
+      }
       return created;
     },
   };
@@ -269,6 +338,8 @@ describe("Chat backend (e2e)", () => {
       roomId: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5",
       senderId: "user_2",
       message: "Message from REST",
+      sender: { id: "user_2", fullName: "User Two", avatarUrl: null },
+      isOwn: true,
     });
     expect(fakePrisma.messages).toHaveLength(1);
   });
@@ -332,10 +403,11 @@ describe("Chat backend (e2e)", () => {
       });
       await sleep(50);
 
-      const incomingPromise = waitForEvent<Message>(
-        socketUser2,
-        "chat:newMessage",
-      );
+      const incomingPromise = waitForEvent<
+        Message & {
+          sender: { id: string; fullName: string; avatarUrl: string | null };
+        }
+      >(socketUser2, "chat:newMessage");
 
       socketUser1.emit("chat:sendMessage", {
         roomId: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5",
@@ -347,6 +419,7 @@ describe("Chat backend (e2e)", () => {
         roomId: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5",
         senderId: "user_1",
         message: "Message from WS",
+        sender: { id: "user_1", fullName: "User One", avatarUrl: null },
       });
     } finally {
       socketUser1.close();

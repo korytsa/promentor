@@ -10,6 +10,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { Server, Socket } from "socket.io";
 import { ChatService } from "./chat.service";
+import { chatMessageToBroadcastPayload } from "./types/chat-response.type";
 import { ACCESS_TOKEN_COOKIE } from "../auth/constants/auth-cookies.constants";
 import { JwtPayload } from "../auth/types/jwt-payload.type";
 
@@ -115,7 +116,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         message: payload.message,
       });
 
-      this.server.to(roomId).emit("chat:newMessage", created);
+      this.server
+        .to(roomId)
+        .emit("chat:newMessage", chatMessageToBroadcastPayload(created));
     } catch (error) {
       this.emitError(client, this.getErrorMessage(error));
     }

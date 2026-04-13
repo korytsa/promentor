@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Query,
@@ -13,10 +16,12 @@ import { JwtPayload } from "../auth/types/jwt-payload.type";
 import { ChatService } from "./chat.service";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
+import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { SendMessageDto } from "./dto/send-message.dto";
 import {
   ChatMessageResponse,
   ChatMessagesPageResponse,
+  ChatRoomDetailResponse,
   ChatRoomListItemResponse,
   ChatRoomResponse,
 } from "./types/chat-response.type";
@@ -49,6 +54,33 @@ export class ChatController {
     @Body() dto: SendMessageDto,
   ): Promise<ChatMessageResponse> {
     return this.chatService.sendMessage(roomId, user.sub, dto);
+  }
+
+  @Post(":id/read")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  markRoomRead(
+    @Param("id") roomId: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: MarkRoomReadDto,
+  ): Promise<void> {
+    return this.chatService.markRoomRead(roomId, user.sub, dto);
+  }
+
+  @Get(":id")
+  getRoom(
+    @Param("id") roomId: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<ChatRoomDetailResponse> {
+    return this.chatService.getRoomById(roomId, user.sub);
+  }
+
+  @Delete(":id/members/me")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  leaveRoom(
+    @Param("id") roomId: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.chatService.leaveRoom(roomId, user.sub);
   }
 
   @Post()

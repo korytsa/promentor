@@ -6,18 +6,31 @@ import {
 } from "@nestjs/common";
 import { ChatRoomType, Prisma, PrismaClient } from "@prisma/client";
 import { CreateRoomDto } from "./dto/create-room.dto";
+import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
 import { SendMessageDto } from "./dto/send-message.dto";
 import {
   ChatLastMessageResponse,
   ChatMessageResponse,
   ChatMessagesPageResponse,
+  ChatRoomDetailResponse,
   ChatRoomListItemResponse,
   ChatRoomResponse,
 } from "./types/chat-response.type";
 
+type MemberForPresentation = {
+  userId: string;
+  user: { fullName: string; avatarUrl: string | null };
+};
+
 const DEFAULT_MESSAGES_LIMIT = 30;
 const DEFAULT_MESSAGES_OFFSET = 0;
+
+const MESSAGE_SENDER_SELECT = {
+  id: true,
+  fullName: true,
+  avatarUrl: true,
+} as const;
 
 @Injectable()
 export class ChatService {
@@ -60,29 +73,22 @@ export class ChatService {
       },
     });
 
+    const unreadByRoom = await this.countUnreadForRooms(
+      rooms.map((r) => r.id),
+      userId,
+    );
+
     return rooms.map((room) => {
       const members = room.members;
       const apiType = this.toApiRoomType(room.type);
 
-      const otherMember =
-        room.type === ChatRoomType.PRIVATE
-          ? members.find((m) => m.userId !== userId)
-          : undefined;
-
-      const displayTitle =
-        room.type === ChatRoomType.PRIVATE
-          ? (otherMember?.user.fullName ?? room.name ?? "Chat")
-          : room.name?.trim() || "Group chat";
-
-      const avatarUrls =
-        room.type === ChatRoomType.PRIVATE
-          ? otherMember?.user.avatarUrl
-            ? [otherMember.user.avatarUrl]
-            : []
-          : members
-              .map((m) => m.user.avatarUrl)
-              .filter((url): url is string => Boolean(url?.length))
-              .slice(0, 3);
+      const { displayTitle, avatarUrls } =
+        this.computeDisplayTitleAndAvatarUrls(
+          room.type,
+          room.name,
+          members,
+          userId,
+        );
 
       const last = room.messages[0];
       let lastMessage: ChatLastMessageResponse | null = null;
@@ -107,7 +113,146 @@ export class ChatService {
         membersCount: room._count.members,
         avatarUrls,
         lastMessage,
+        unreadCount: unreadByRoom.get(room.id) ?? 0,
       };
+    });
+  }
+
+  async getRoomById(
+    roomId: string,
+    userId: string,
+  ): Promise<ChatRoomDetailResponse> {
+    const room = await this.prisma.chatRoom.findFirst({
+      where: {
+        id: roomId,
+        members: {
+          some: { userId },
+        },
+      },
+      include: {
+        _count: {
+          select: { members: true },
+        },
+        members: {
+          orderBy: { joinedAt: "asc" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!room) {
+      const exists = await this.prisma.chatRoom.findUnique({
+        where: { id: roomId },
+        select: { id: true },
+      });
+      if (!exists) {
+        throw new NotFoundException("Room not found");
+      }
+      throw new ForbiddenException("You do not have access to this room");
+    }
+
+    const { displayTitle, avatarUrls } = this.computeDisplayTitleAndAvatarUrls(
+      room.type,
+      room.name,
+      room.members,
+      userId,
+    );
+
+    const unreadCount = await this.countUnreadForRoom(room.id, userId);
+
+    return {
+      id: room.id,
+      name: room.name,
+      displayTitle,
+      type: this.toApiRoomType(room.type),
+      createdBy: room.createdBy,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+      membersCount: room._count.members,
+      avatarUrls,
+      members: room.members.map((m) => ({
+        userId: m.userId,
+        fullName: m.user.fullName,
+        avatarUrl: m.user.avatarUrl,
+      })),
+      membersOnlineCount: 0,
+      unreadCount,
+    };
+  }
+
+  async markRoomRead(
+    roomId: string,
+    userId: string,
+    dto: MarkRoomReadDto,
+  ): Promise<void> {
+    await this.assertCanAccessRoom(roomId, userId);
+
+    let readAt: Date;
+    if (dto.messageId) {
+      const msg = await this.prisma.chatMessage.findFirst({
+        where: { id: dto.messageId, roomId },
+        select: { createdAt: true },
+      });
+      if (!msg) {
+        throw new NotFoundException("Message not found");
+      }
+      readAt = msg.createdAt;
+    } else {
+      const latest = await this.prisma.chatMessage.findFirst({
+        where: { roomId },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      });
+      readAt = latest?.createdAt ?? new Date();
+    }
+
+    await this.prisma.roomMember.update({
+      where: {
+        roomId_userId: { roomId, userId },
+      },
+      data: { lastReadAt: readAt },
+    });
+  }
+
+  async leaveRoom(roomId: string, userId: string): Promise<void> {
+    const room = await this.prisma.chatRoom.findFirst({
+      where: {
+        id: roomId,
+        members: {
+          some: { userId },
+        },
+      },
+      select: { id: true, type: true },
+    });
+
+    if (!room) {
+      const exists = await this.prisma.chatRoom.findUnique({
+        where: { id: roomId },
+        select: { id: true },
+      });
+      if (!exists) {
+        throw new NotFoundException("Room not found");
+      }
+      throw new ForbiddenException("You are not a member of this room");
+    }
+
+    if (room.type === ChatRoomType.PRIVATE) {
+      await this.prisma.chatRoom.delete({ where: { id: roomId } });
+      return;
+    }
+
+    await this.prisma.roomMember.delete({
+      where: {
+        roomId_userId: { roomId, userId },
+      },
     });
   }
 
@@ -121,7 +266,7 @@ export class ChatService {
     const limit = query.limit ?? DEFAULT_MESSAGES_LIMIT;
     const offset = query.offset ?? DEFAULT_MESSAGES_OFFSET;
 
-    const [total, messages] = await this.prisma.$transaction([
+    const [total, rawMessages] = await this.prisma.$transaction([
       this.prisma.chatMessage.count({ where: { roomId } }),
       this.prisma.chatMessage.findMany({
         where: { roomId },
@@ -134,12 +279,15 @@ export class ChatService {
           senderId: true,
           message: true,
           createdAt: true,
+          sender: {
+            select: MESSAGE_SENDER_SELECT,
+          },
         },
       }),
     ]);
 
     return {
-      items: messages,
+      items: rawMessages.map((m) => this.mapMessageToResponse(m, userId)),
       total,
       limit,
       offset,
@@ -157,8 +305,8 @@ export class ChatService {
       throw new BadRequestException("Message cannot be empty");
     }
 
-    const [created] = await this.prisma.$transaction([
-      this.prisma.chatMessage.create({
+    const created = await this.prisma.$transaction(async (tx) => {
+      const messageRow = await tx.chatMessage.create({
         data: {
           roomId,
           senderId: userId,
@@ -170,18 +318,28 @@ export class ChatService {
           senderId: true,
           message: true,
           createdAt: true,
+          sender: {
+            select: MESSAGE_SENDER_SELECT,
+          },
         },
-      }),
-      this.prisma.chatRoom.update({
+      });
+      await tx.chatRoom.update({
         where: { id: roomId },
         data: {
           updatedAt: new Date(),
         },
         select: { id: true },
-      }),
-    ]);
+      });
+      await tx.roomMember.update({
+        where: {
+          roomId_userId: { roomId, userId },
+        },
+        data: { lastReadAt: messageRow.createdAt },
+      });
+      return messageRow;
+    });
 
-    return created;
+    return this.mapMessageToResponse(created, userId);
   }
 
   async createRoom(
@@ -240,6 +398,7 @@ export class ChatService {
     }
 
     try {
+      const memberReadAt = new Date();
       const createdRoom = await this.prisma.chatRoom.create({
         data: {
           name:
@@ -251,6 +410,7 @@ export class ChatService {
             createMany: {
               data: participants.map((participantId) => ({
                 userId: participantId,
+                lastReadAt: memberReadAt,
               })),
             },
           },
@@ -344,6 +504,87 @@ export class ChatService {
 
   private getPrivatePairKey(firstUserId: string, secondUserId: string): string {
     return [firstUserId, secondUserId].sort().join(":");
+  }
+
+  private mapMessageToResponse(
+    row: {
+      id: string;
+      roomId: string;
+      senderId: string;
+      message: string;
+      createdAt: Date;
+      sender: { id: string; fullName: string; avatarUrl: string | null };
+    },
+    viewerUserId: string,
+  ): ChatMessageResponse {
+    return {
+      id: row.id,
+      roomId: row.roomId,
+      senderId: row.senderId,
+      message: row.message,
+      createdAt: row.createdAt,
+      sender: row.sender,
+      isOwn: row.senderId === viewerUserId,
+    };
+  }
+
+  private async countUnreadForRoom(
+    roomId: string,
+    viewerUserId: string,
+  ): Promise<number> {
+    const counts = await this.countUnreadForRooms([roomId], viewerUserId);
+    return counts.get(roomId) ?? 0;
+  }
+
+  private async countUnreadForRooms(
+    roomIds: string[],
+    viewerUserId: string,
+  ): Promise<Map<string, number>> {
+    if (roomIds.length === 0) {
+      return new Map();
+    }
+    const rows = await this.prisma.$queryRaw<
+      { room_id: string; c: number }[]
+    >(Prisma.sql`
+      SELECT m.room_id::text AS room_id, COUNT(*)::int AS c
+      FROM chat_messages m
+      INNER JOIN room_members rm
+        ON rm.room_id = m.room_id AND rm.user_id = ${viewerUserId}
+      WHERE m.room_id IN (${Prisma.join(roomIds)})
+        AND m.sender_id <> ${viewerUserId}
+        AND m.created_at > COALESCE(rm.last_read_at, rm.joined_at)
+      GROUP BY m.room_id
+    `);
+    return new Map(rows.map((r) => [r.room_id, r.c]));
+  }
+
+  private computeDisplayTitleAndAvatarUrls(
+    roomType: ChatRoomType,
+    name: string | null,
+    members: MemberForPresentation[],
+    viewerUserId: string,
+  ): { displayTitle: string; avatarUrls: string[] } {
+    const otherMember =
+      roomType === ChatRoomType.PRIVATE
+        ? members.find((m) => m.userId !== viewerUserId)
+        : undefined;
+
+    const displayTitle =
+      roomType === ChatRoomType.PRIVATE
+        ? (otherMember?.user.fullName ?? name ?? "Chat")
+        : name?.trim() || "Group chat";
+
+    const avatarUrls =
+      roomType === ChatRoomType.PRIVATE
+        ? otherMember?.user.avatarUrl
+          ? [otherMember.user.avatarUrl]
+          : []
+        : members
+            .map((m) => m.user.avatarUrl)
+            .filter((url): url is string => Boolean(url?.length))
+            .slice(0, 3);
+
+    return { displayTitle, avatarUrls };
   }
 
   private toApiRoomType(type: ChatRoomType): "private" | "group" {
