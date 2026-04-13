@@ -1,16 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@promentorapp/ui-kit";
+import { Button, TextField } from "@promentorapp/ui-kit";
 import type { UserRole } from "@/entities/user/types";
 import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
 import { useRegisterMutation } from "../api";
+import { startGoogleAuth } from "../model/googleAuth";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { registerSchema } from "../model/schema";
+import { useOauthFailedSearchParam } from "../model/useOauthFailedSearchParam";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
 import { AuthFormServerError } from "./AuthFormServerError";
-import { FormField } from "./FormField";
 
 export const RegisterForm = ({ role }: { role: UserRole }) => {
+  const oauthFailedMessage = useOauthFailedSearchParam();
   const navigate = useNavigate();
   const mutation = useRegisterMutation();
   const {
@@ -37,9 +39,15 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <AuthFormServerError message={serverError} />
-      <AuthFormOAuthDivider googleLabel="Sign up with Google" />
-      <FormField
+      <AuthFormServerError message={oauthFailedMessage ?? serverError} />
+      <AuthFormOAuthDivider
+        googleLabel="Sign up with Google"
+        onGoogleClick={() => {
+          startGoogleAuth({ role, mode: "register" });
+        }}
+        disabled={isPending}
+      />
+      <TextField
         label="Full Name"
         type="text"
         autoComplete="name"
@@ -47,7 +55,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
         error={errors.fullName?.message}
         {...register("fullName")}
       />
-      <FormField
+      <TextField
         label="Email"
         type="email"
         autoComplete="email"
@@ -55,7 +63,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
         error={errors.email?.message}
         {...register("email")}
       />
-      <FormField
+      <TextField
         label="Password"
         type="password"
         autoComplete="new-password"
@@ -66,7 +74,7 @@ export const RegisterForm = ({ role }: { role: UserRole }) => {
       <div className="mt-3">
         <Button
           type="submit"
-          customVariant="authPrimary"
+          customVariant="hero"
           fullWidth={true}
           disabled={isPending}
         >

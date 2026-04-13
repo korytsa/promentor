@@ -1,16 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@promentorapp/ui-kit";
+import { Button, TextField } from "@promentorapp/ui-kit";
 import type { UserRole } from "@/entities/user/types";
 import { AUTH_APP_HOME_PATH } from "@/entities/user/model/constants";
 import { useLoginMutation } from "../api";
+import { startGoogleAuth } from "../model/googleAuth";
 import { useAuthRoleForm } from "../model/useAuthRoleForm";
 import { loginSchema } from "../model/schema";
+import { useOauthFailedSearchParam } from "../model/useOauthFailedSearchParam";
 import { AuthFormOAuthDivider } from "./AuthFormOAuthDivider";
 import { AuthFormServerError } from "./AuthFormServerError";
-import { FormField } from "./FormField";
 
 export const LoginForm = ({ role }: { role: UserRole }) => {
+  const oauthFailedMessage = useOauthFailedSearchParam();
   const navigate = useNavigate();
   const mutation = useLoginMutation();
   const {
@@ -36,9 +38,15 @@ export const LoginForm = ({ role }: { role: UserRole }) => {
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
-      <AuthFormServerError message={serverError} />
-      <AuthFormOAuthDivider googleLabel="Sign in with Google" />
-      <FormField
+      <AuthFormServerError message={oauthFailedMessage ?? serverError} />
+      <AuthFormOAuthDivider
+        googleLabel="Sign in with Google"
+        onGoogleClick={() => {
+          startGoogleAuth({ role, mode: "login" });
+        }}
+        disabled={isPending}
+      />
+      <TextField
         label="Email"
         type="email"
         autoComplete="email"
@@ -46,7 +54,7 @@ export const LoginForm = ({ role }: { role: UserRole }) => {
         error={errors.email?.message}
         {...register("email")}
       />
-      <FormField
+      <TextField
         label="Password"
         type="password"
         autoComplete="current-password"
@@ -54,11 +62,10 @@ export const LoginForm = ({ role }: { role: UserRole }) => {
         error={errors.password?.message}
         {...register("password")}
       />
-
       <div className="mt-3">
         <Button
           type="submit"
-          customVariant="authPrimary"
+          customVariant="hero"
           fullWidth={true}
           disabled={isPending}
         >

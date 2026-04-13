@@ -4,13 +4,20 @@ import { DashboardPage, LoginPage, RegisterPage } from "@/pages";
 import { RemoteErrorBoundary } from "@/shared/ui";
 import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
-const ChatPage = lazy(() => import("chatApp/ChatPage"));
+const ChatEmptyPage = lazy(() => import("chatApp/ChatEmptyPage"));
+const ChatCreateGroupPage = lazy(() => import("chatApp/ChatCreateGroupPage"));
+const ChatProfilePage = lazy(() => import("chatApp/ChatProfilePage"));
+const ChatConversationPage = lazy(() => import("chatApp/ChatConversationPage"));
+const ChatSidebar = lazy(() => import("chatApp/ChatSidebar"));
+
 const TeamsPage = lazy(() => import("coachingApp/TeamsPage"));
 const BoardsPage = lazy(() => import("coachingApp/BoardsPage"));
 const WorkoutPlansPage = lazy(() => import("coachingApp/WorkoutPlansPage"));
 const ExploreTeamsPage = lazy(() => import("coachingApp/ExploreTeamsPage"));
 const MentorsPage = lazy(() => import("coachingApp/MentorsPage"));
 const SuggestionPage = lazy(() => import("coachingApp/SuggestionPage"));
+const RequestsPage = lazy(() => import("coachingApp/RequestsPage"));
+const ProfilePage = lazy(() => import("coachingApp/ProfilePage"));
 
 type ProtectedRemoteRouteProps = {
   title: string;
@@ -30,12 +37,40 @@ type GuestRouteConfig = {
   element: ReactNode;
 };
 
+function isChatRoute(path: string) {
+  return path === "/chat" || path.startsWith("/chat/");
+}
+
 const remoteRoutes: RemoteRouteConfig[] = [
   {
     path: "/chat",
     title: "Chat",
     loadingText: "Loading chat...",
-    element: <ChatPage />,
+    element: <ChatEmptyPage />,
+  },
+  {
+    path: "/chat/create-group",
+    title: "Create Group",
+    loadingText: "Loading create group...",
+    element: <ChatCreateGroupPage />,
+  },
+  {
+    path: "/chat/profile",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ChatProfilePage />,
+  },
+  {
+    path: "/chat/profile/:slug",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ChatProfilePage />,
+  },
+  {
+    path: "/chat/:chatId",
+    title: "Chat",
+    loadingText: "Loading chat...",
+    element: <ChatConversationPage />,
   },
   {
     path: "/teams",
@@ -54,6 +89,18 @@ const remoteRoutes: RemoteRouteConfig[] = [
     title: "Workout Plans",
     loadingText: "Loading workout plans...",
     element: <WorkoutPlansPage />,
+  },
+  {
+    path: "/requests",
+    title: "Requests",
+    loadingText: "Loading requests...",
+    element: <RequestsPage />,
+  },
+  {
+    path: "/profile",
+    title: "Profile",
+    loadingText: "Loading profile...",
+    element: <ProfilePage />,
   },
   {
     path: "/explore-teams",
@@ -126,7 +173,14 @@ export function App() {
           path={path}
           element={
             <ProtectedRemoteRoute title={title} loadingText={loadingText}>
-              {element}
+              {isChatRoute(path) ? (
+                <div className="flex flex-1 w-full h-[calc(100vh-110px)] gap-2 flex-row">
+                  <ChatSidebar />
+                  {element}
+                </div>
+              ) : (
+                element
+              )}
             </ProtectedRemoteRoute>
           }
         />

@@ -9,9 +9,13 @@ import { ShellLayout } from "@/widgets/layout";
 import { RouteLoadingFallback } from "./RouteLoadingFallback";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { data: user, isPending } = useSessionQuery();
+  const { data: user, isPending, isError } = useSessionQuery();
 
   if (isPending) {
+    return <RouteLoadingFallback />;
+  }
+
+  if (isError) {
     return <RouteLoadingFallback />;
   }
 
@@ -23,9 +27,13 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 export function RequireGuest({ children }: { children: ReactNode }) {
-  const { data: user, isPending } = useSessionQuery();
+  const { data: user, isPending, isError } = useSessionQuery();
 
   if (isPending) {
+    return <RouteLoadingFallback />;
+  }
+
+  if (isError) {
     return <RouteLoadingFallback />;
   }
 
@@ -37,9 +45,13 @@ export function RequireGuest({ children }: { children: ReactNode }) {
 }
 
 export function UnknownPathRedirect() {
-  const { data: user, isPending } = useSessionQuery();
+  const { data: user, isPending, isError } = useSessionQuery();
 
   if (isPending) {
+    return <RouteLoadingFallback />;
+  }
+
+  if (isError) {
     return <RouteLoadingFallback />;
   }
 

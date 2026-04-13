@@ -4,10 +4,11 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
+import { applyThemeContract, THEME_STORAGE_KEY } from "./themeContract";
 import { createAppTheme, type AppThemeMode } from "./theme";
 
 type AppThemeProviderProps = {
@@ -20,8 +21,6 @@ type AppThemeContextValue = {
   toggleMode: () => void;
 };
 
-const STORAGE_KEY = "promentor-theme-mode";
-
 const AppThemeContext = createContext<AppThemeContextValue | null>(null);
 
 const getInitialMode = (): AppThemeMode => {
@@ -29,7 +28,7 @@ const getInitialMode = (): AppThemeMode => {
     return "light";
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "light" || stored === "dark") {
     return stored;
   }
@@ -47,10 +46,9 @@ export function AppThemeProvider({ children }: AppThemeProviderProps) {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, mode);
-    document.documentElement.setAttribute("data-theme", mode);
-    document.documentElement.classList.toggle("dark", mode === "dark");
+  useLayoutEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    applyThemeContract(mode);
   }, [mode]);
 
   const contextValue = useMemo<AppThemeContextValue>(
