@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ChatRoomType, Prisma, PrismaClient } from "@prisma/client";
+import { ChatPresenceService } from "./chat-presence.service";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
@@ -26,15 +27,27 @@ type MemberForPresentation = {
 const DEFAULT_MESSAGES_LIMIT = 30;
 const DEFAULT_MESSAGES_OFFSET = 0;
 
-const MESSAGE_SENDER_SELECT = {
+const USER_PUBLIC_SELECT = {
   id: true,
   fullName: true,
   avatarUrl: true,
 } as const;
 
+const ROOM_MEMBERS_WITH_USERS_INCLUDE = {
+  orderBy: { joinedAt: "asc" as const },
+  include: {
+    user: {
+      select: USER_PUBLIC_SELECT,
+    },
+  },
+};
+
 @Injectable()
 export class ChatService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly presence: ChatPresenceService,
+  ) {}
 
   async listRooms(userId: string): Promise<ChatRoomListItemResponse[]> {
     const rooms = await this.prisma.chatRoom.findMany({
@@ -58,18 +71,7 @@ export class ChatService {
         _count: {
           select: { members: true },
         },
-        members: {
-          orderBy: { joinedAt: "asc" },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
+        members: ROOM_MEMBERS_WITH_USERS_INCLUDE,
       },
     });
 
@@ -133,18 +135,7 @@ export class ChatService {
         _count: {
           select: { members: true },
         },
-        members: {
-          orderBy: { joinedAt: "asc" },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
+        members: ROOM_MEMBERS_WITH_USERS_INCLUDE,
       },
     });
 
@@ -183,7 +174,7 @@ export class ChatService {
         fullName: m.user.fullName,
         avatarUrl: m.user.avatarUrl,
       })),
-      membersOnlineCount: 0,
+      membersOnlineCount: this.presence.getMembersOnlineCount(room.id),
       unreadCount,
     };
   }
@@ -280,7 +271,7 @@ export class ChatService {
           message: true,
           createdAt: true,
           sender: {
-            select: MESSAGE_SENDER_SELECT,
+            select: USER_PUBLIC_SELECT,
           },
         },
       }),
@@ -319,7 +310,7 @@ export class ChatService {
           message: true,
           createdAt: true,
           sender: {
-            select: MESSAGE_SENDER_SELECT,
+            select: USER_PUBLIC_SELECT,
           },
         },
       });

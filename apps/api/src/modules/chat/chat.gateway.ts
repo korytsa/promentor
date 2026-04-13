@@ -9,12 +9,15 @@ import {
 } from "@nestjs/websockets";
 import { JwtService } from "@nestjs/jwt";
 import { Server, Socket } from "socket.io";
+import { ChatPresenceService } from "./chat-presence.service";
 import { ChatService } from "./chat.service";
 import { chatMessageToBroadcastPayload } from "./types/chat-response.type";
 import { ACCESS_TOKEN_COOKIE } from "../auth/constants/auth-cookies.constants";
 import { JwtPayload } from "../auth/types/jwt-payload.type";
 
-type ChatSocket = Socket & { data: { userId?: string } };
+type ChatSocket = Socket & {
+  data: { userId?: string; joinedPresenceRooms?: Set<string> };
+};
 
 type RoomEventPayload = {
   roomId: string;
@@ -23,6 +26,11 @@ type RoomEventPayload = {
 type SendMessageEventPayload = {
   roomId: string;
   message: string;
+};
+
+type TypingEventPayload = {
+  roomId: string;
+  typing?: boolean;
 };
 
 @WebSocketGateway({
@@ -38,6 +46,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly chatService: ChatService,
+    private readonly presence: ChatPresenceService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -59,6 +68,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: ChatSocket): void {
+    const userId = client.data.userId;
+    const joined = client.data.joinedPresenceRooms;
+    if (userId && joined && joined.size > 0) {
+      for (const roomId of joined) {
+        const membersOnlineCount = this.presence.leave(roomId, userId);
+        this.emitRoomPresence(roomId, membersOnlineCount);
+      }
+      joined.clear();
+    }
+
     client.rooms.forEach((roomId) => {
       if (roomId !== client.id) {
         void client.leave(roomId);
@@ -73,7 +92,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     try {
       const userId = this.requireUserId(client);
-      const roomId = payload.roomId?.trim();
+      const roomId = this.trimRoomId(payload.roomId);
       if (!roomId) {
         this.emitError(client, "Room id is required");
         return;
@@ -81,6 +100,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       await this.chatService.assertCanAccessRoom(roomId, userId);
       await client.join(roomId);
+
+      client.data.joinedPresenceRooms ??= new Set();
+      if (!client.data.joinedPresenceRooms.has(roomId)) {
+        client.data.joinedPresenceRooms.add(roomId);
+        const membersOnlineCount = this.presence.join(roomId, userId);
+        this.emitRoomPresence(roomId, membersOnlineCount);
+      }
     } catch (error) {
       this.emitError(client, this.getErrorMessage(error));
     }
@@ -91,12 +117,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: ChatSocket,
     @MessageBody() payload: RoomEventPayload,
   ): Promise<void> {
-    const roomId = payload.roomId?.trim();
-    if (!roomId) {
-      this.emitError(client, "Room id is required");
-      return;
+    try {
+      const roomId = this.trimRoomId(payload.roomId);
+      if (!roomId) {
+        this.emitError(client, "Room id is required");
+        return;
+      }
+
+      const userId = this.requireUserId(client);
+      await client.leave(roomId);
+
+      if (client.data.joinedPresenceRooms?.has(roomId)) {
+        client.data.joinedPresenceRooms.delete(roomId);
+        const membersOnlineCount = this.presence.leave(roomId, userId);
+        this.emitRoomPresence(roomId, membersOnlineCount);
+      }
+    } catch (error) {
+      this.emitError(client, this.getErrorMessage(error));
     }
-    await client.leave(roomId);
+  }
+
+  @SubscribeMessage("chat:typing")
+  async typing(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() payload: TypingEventPayload,
+  ): Promise<void> {
+    try {
+      const userId = this.requireUserId(client);
+      const roomId = this.trimRoomId(payload.roomId);
+      if (!roomId) {
+        this.emitError(client, "Room id is required");
+        return;
+      }
+
+      await this.chatService.assertCanAccessRoom(roomId, userId);
+      const typing = payload.typing !== false;
+
+      client.to(roomId).emit("chat:typing", {
+        roomId,
+        userId,
+        typing,
+      });
+    } catch (error) {
+      this.emitError(client, this.getErrorMessage(error));
+    }
   }
 
   @SubscribeMessage("chat:sendMessage")
@@ -106,7 +170,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     try {
       const userId = this.requireUserId(client);
-      const roomId = payload.roomId?.trim();
+      const roomId = this.trimRoomId(payload.roomId);
       if (!roomId) {
         this.emitError(client, "Room id is required");
         return;
@@ -122,6 +186,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (error) {
       this.emitError(client, this.getErrorMessage(error));
     }
+  }
+
+  private emitRoomPresence(roomId: string, membersOnlineCount: number): void {
+    this.server.to(roomId).emit("chat:roomPresence", {
+      roomId,
+      membersOnlineCount,
+    });
+  }
+
+  private trimRoomId(roomId: string | undefined): string | null {
+    const t = roomId?.trim() ?? "";
+    return t.length > 0 ? t : null;
   }
 
   private requireUserId(client: ChatSocket): string {
