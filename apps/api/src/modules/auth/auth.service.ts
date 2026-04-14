@@ -38,9 +38,6 @@ const AUTH_USER_WITH_PASSWORD_SELECT = {
 type SessionUser = Prisma.UserGetPayload<{
   select: typeof SESSION_USER_SELECT;
 }>;
-type AuthUserWithPassword = Prisma.UserGetPayload<{
-  select: typeof AUTH_USER_WITH_PASSWORD_SELECT;
-}>;
 
 function isGoogleMentorSignupAllowed(): boolean {
   return process.env.ALLOW_GOOGLE_MENTOR_SIGNUP?.trim() === "true";
@@ -199,7 +196,10 @@ export class AuthService {
 
   private async issueSession(
     res: Response,
-    user: Pick<AuthUserWithPassword, "id" | "email" | "role">,
+    user: Pick<
+      Prisma.UserGetPayload<{ select: typeof AUTH_USER_WITH_PASSWORD_SELECT }>,
+      "id" | "email" | "role"
+    >,
   ): Promise<void> {
     const payload: JwtPayload = {
       sub: user.id,
