@@ -251,14 +251,29 @@ export class FakePrismaService {
   roomMember = {
     findUnique: async (args: {
       where: { roomId_userId: { roomId: string; userId: string } };
-      select: { roomId: true };
-    }): Promise<{ roomId: string } | null> => {
+      select: { roomId?: true; lastReadAt?: true };
+    }): Promise<
+      | { roomId: string }
+      | { lastReadAt: Date | undefined }
+      | { roomId: string; lastReadAt: Date | undefined }
+      | null
+    > => {
       const found = this.members.find(
         (member) =>
           member.roomId === args.where.roomId_userId.roomId &&
           member.userId === args.where.roomId_userId.userId,
       );
-      return found ? { roomId: found.roomId } : null;
+      if (!found) {
+        return null;
+      }
+      const sel = args.select;
+      if (sel.roomId && sel.lastReadAt) {
+        return { roomId: found.roomId, lastReadAt: found.lastReadAt };
+      }
+      if (sel.lastReadAt) {
+        return { lastReadAt: found.lastReadAt };
+      }
+      return { roomId: found.roomId };
     },
     update: async (args: {
       where: { roomId_userId: { roomId: string; userId: string } };
@@ -280,6 +295,26 @@ export class FakePrismaService {
   };
 
   chatMessage = {
+    findFirst: async (args: {
+      where: { id: string; roomId: string } | { roomId: string };
+      orderBy?: { createdAt: "asc" | "desc" };
+      select: { createdAt: true };
+    }): Promise<{ createdAt: Date } | null> => {
+      const where = args.where;
+      let list = this.messages.filter((m) => m.roomId === where.roomId);
+      if ("id" in where && where.id !== undefined) {
+        const row = list.find((m) => m.id === where.id);
+        return row ? { createdAt: row.createdAt } : null;
+      }
+      if (list.length === 0) {
+        return null;
+      }
+      list = [...list].sort((a, b) => {
+        const d = a.createdAt.getTime() - b.createdAt.getTime();
+        return args.orderBy?.createdAt === "desc" ? -d : d;
+      });
+      return { createdAt: list[0]!.createdAt };
+    },
     create: async (args: {
       data: { roomId: string; senderId: string; message: string };
       select: {

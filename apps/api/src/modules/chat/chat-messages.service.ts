@@ -118,7 +118,15 @@ export class ChatMessagesService {
   ): Promise<void> {
     await this.rooms.assertCanAccessRoom(roomId, userId);
 
-    let readAt: Date;
+    const member = await this.prisma.roomMember.findUnique({
+      where: { roomId_userId: { roomId, userId } },
+      select: { lastReadAt: true },
+    });
+    if (!member) {
+      throw new NotFoundException("Room membership not found");
+    }
+
+    let requestedReadAt: Date;
     if (dto.messageId) {
       const msg = await this.prisma.chatMessage.findFirst({
         where: { id: dto.messageId, roomId },
@@ -127,21 +135,25 @@ export class ChatMessagesService {
       if (!msg) {
         throw new NotFoundException("Message not found");
       }
-      readAt = msg.createdAt;
+      requestedReadAt = msg.createdAt;
     } else {
       const latest = await this.prisma.chatMessage.findFirst({
         where: { roomId },
         orderBy: { createdAt: "desc" },
         select: { createdAt: true },
       });
-      readAt = latest?.createdAt ?? new Date();
+      requestedReadAt = latest?.createdAt ?? new Date();
     }
+
+    const nextReadAt = new Date(
+      Math.max(requestedReadAt.getTime(), member.lastReadAt?.getTime() ?? 0),
+    );
 
     await this.prisma.roomMember.update({
       where: {
         roomId_userId: { roomId, userId },
       },
-      data: { lastReadAt: readAt },
+      data: { lastReadAt: nextReadAt },
     });
   }
 

@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { throttleDefaultsFromEnv } from "../../config/throttle.config";
 
-/** In-memory rate limit for Socket.IO message sends (same window as REST throttler defaults). */
 @Injectable()
 export class ChatSocketThrottleService {
   private readonly timestampsByUser = new Map<string, number[]>();
@@ -9,14 +8,23 @@ export class ChatSocketThrottleService {
   allowMessageSend(userId: string): boolean {
     const { ttlMs, limit } = throttleDefaultsFromEnv();
     const now = Date.now();
-    const windowStart = now - ttlMs;
-    const prev = this.timestampsByUser.get(userId) ?? [];
-    const next = prev.filter((t) => t > windowStart);
-    if (next.length >= limit) {
+    const cut = now - ttlMs;
+    let arr = this.timestampsByUser.get(userId);
+    if (!arr) {
+      arr = [];
+    }
+    while (arr.length > 0 && arr[0]! <= cut) {
+      arr.shift();
+    }
+    if (arr.length === 0) {
+      this.timestampsByUser.delete(userId);
+    }
+    if (arr.length >= limit) {
+      this.timestampsByUser.set(userId, arr);
       return false;
     }
-    next.push(now);
-    this.timestampsByUser.set(userId, next);
+    arr.push(now);
+    this.timestampsByUser.set(userId, arr);
     return true;
   }
 }

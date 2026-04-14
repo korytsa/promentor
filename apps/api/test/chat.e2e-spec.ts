@@ -48,6 +48,8 @@ describe("Chat backend (e2e)", () => {
 
   beforeAll(async () => {
     process.env.NODE_ENV = "development";
+    process.env.THROTTLE_LIMIT = "2";
+    process.env.THROTTLE_TTL_MS = "60000";
     fakePrisma = new FakePrismaService();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -190,5 +192,99 @@ describe("Chat backend (e2e)", () => {
       socketUser1.close();
       socketUser2.close();
     }
+  });
+
+  it("emits chat:error and disconnects when access token is missing", async () => {
+    const socket = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+    });
+    try {
+      const payload = await waitForEvent<{ message: string }>(
+        socket,
+        "chat:error",
+      );
+      expect(payload.message).toMatch(/Missing access token/i);
+    } finally {
+      socket.close();
+    }
+  });
+
+  it("emits chat:error and disconnects when token is invalid", async () => {
+    const socket = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: "not-a-valid-jwt" },
+    });
+    try {
+      const payload = await waitForEvent<{ message: string }>(
+        socket,
+        "chat:error",
+      );
+      expect(payload.message).toMatch(/Invalid or expired token/i);
+    } finally {
+      socket.close();
+    }
+  });
+
+  it("emits chat:error and does not persist message when send is throttled", async () => {
+    const roomId = "5db0da20-b916-4c44-8ad6-b4bea76f0ea5";
+    const before = fakePrisma.messages.length;
+    const socket = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser2 },
+    });
+    try {
+      await waitForEvent<void>(socket, "connect");
+      socket.emit("chat:joinRoom", { roomId });
+      await sleep(50);
+      socket.emit("chat:sendMessage", { roomId, message: "first" });
+      socket.emit("chat:sendMessage", { roomId, message: "second" });
+      socket.emit("chat:sendMessage", { roomId, message: "third" });
+      const payload = await waitForEvent<{ message: string }>(
+        socket,
+        "chat:error",
+      );
+      expect(payload.message).toMatch(/Too many messages|slow down/i);
+      await sleep(100);
+      expect(fakePrisma.messages.length).toBe(before + 2);
+    } finally {
+      socket.close();
+    }
+  });
+
+  it("does not move lastReadAt backward when marking an older message", async () => {
+    const roomId = "5db0da20-b916-4c44-8ad6-b4bea76f0ea5";
+    const older = await request(app.getHttpServer())
+      .post(`/rooms/${roomId}/messages`)
+      .set("Cookie", [`access_token=${accessTokenUser1}`])
+      .send({ message: "older line" })
+      .expect(201);
+    await sleep(5);
+    const newer = await request(app.getHttpServer())
+      .post(`/rooms/${roomId}/messages`)
+      .set("Cookie", [`access_token=${accessTokenUser1}`])
+      .send({ message: "newer line" })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post(`/rooms/${roomId}/read`)
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
+      .send({ messageId: newer.body.id })
+      .expect(204);
+
+    const afterNewer = fakePrisma.members.find(
+      (m) => m.roomId === roomId && m.userId === "user_2",
+    )!.lastReadAt!;
+
+    await request(app.getHttpServer())
+      .post(`/rooms/${roomId}/read`)
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
+      .send({ messageId: older.body.id })
+      .expect(204);
+
+    const afterOlder = fakePrisma.members.find(
+      (m) => m.roomId === roomId && m.userId === "user_2",
+    )!.lastReadAt!;
+
+    expect(afterOlder.getTime()).toBe(afterNewer.getTime());
   });
 });
