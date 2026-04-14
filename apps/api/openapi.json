@@ -2,7 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Promentor API",
-    "version": "1.0"
+    "version": "1.0",
+    "description": "REST under /auth, /users, /rooms (JWT cookie). Realtime chat: Socket.IO namespace /chat. This file is hand-maintained; validate against controllers when changing API."
   },
   "paths": {
     "/health": {
@@ -131,6 +132,261 @@
           }
         }
       }
+    },
+    "/users/search": {
+      "get": {
+        "operationId": "usersSearch",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "maxLength": 200 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 50 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching users (excluding current user)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/UserSearchItemDto" }
+                }
+              }
+            }
+          },
+          "400": { "description": "Empty or invalid query" },
+          "401": { "description": "Not authenticated" },
+          "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/rooms": {
+      "get": {
+        "operationId": "roomsList",
+        "tags": ["rooms"],
+        "responses": {
+          "200": {
+            "description": "Rooms for the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatRoomListItemResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated" },
+          "429": { "description": "Too many requests" }
+        }
+      },
+      "post": {
+        "operationId": "roomsCreate",
+        "tags": ["rooms"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRoomDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatRoomResponse" }
+              }
+            }
+          },
+          "400": { "description": "Invalid body" },
+          "401": { "description": "Not authenticated" },
+          "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/rooms/{id}": {
+      "get": {
+        "operationId": "roomsGetById",
+        "tags": ["rooms"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoomDetailResponse"
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated" },
+          "403": {
+            "description": "Authenticated but not a member of this room"
+          },
+          "404": { "description": "Room not found" },
+          "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/rooms/{id}/members/me": {
+      "delete": {
+        "operationId": "roomsLeave",
+        "tags": ["rooms"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Left the group room, or deleted a private chat for both sides (private rooms are fully removed when one participant leaves)"
+          },
+          "401": { "description": "Not authenticated" },
+          "403": {
+            "description": "Authenticated but not a member of this room"
+          },
+          "404": { "description": "Room not found" },
+          "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/rooms/{id}/messages": {
+      "get": {
+        "operationId": "roomsListMessages",
+        "tags": ["rooms"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessagesPageResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid room id or query" },
+          "401": { "description": "Not authenticated" },
+          "403": {
+            "description": "Authenticated but not a member of this room"
+          },
+          "404": { "description": "Room not found" },
+          "429": { "description": "Too many requests" }
+        }
+      },
+      "post": {
+        "operationId": "roomsSendMessage",
+        "tags": ["rooms"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SendMessageDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatMessageResponse" }
+              }
+            }
+          },
+          "400": { "description": "Invalid body or room id" },
+          "401": { "description": "Not authenticated" },
+          "403": {
+            "description": "Authenticated but not a member of this room"
+          },
+          "404": { "description": "Room not found" },
+          "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/rooms/{id}/read": {
+      "post": {
+        "operationId": "roomsMarkRead",
+        "tags": ["rooms"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MarkRoomReadDto" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Read state updated" },
+          "400": { "description": "Invalid room id" },
+          "401": { "description": "Not authenticated" },
+          "403": {
+            "description": "Authenticated but not a member of this room"
+          },
+          "404": { "description": "Room not found" },
+          "429": { "description": "Too many requests" }
+        }
+      }
     }
   },
   "components": {
@@ -164,7 +420,10 @@
           "id": { "type": "string" },
           "fullName": { "type": "string" },
           "email": { "type": "string" },
-          "role": { "$ref": "#/components/schemas/UserRole" }
+          "role": { "$ref": "#/components/schemas/UserRole" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "jobTitle": { "type": "string", "nullable": true },
+          "about": { "type": "string", "nullable": true }
         },
         "required": ["id", "fullName", "email", "role"]
       },
@@ -181,6 +440,202 @@
           "ok": { "type": "boolean", "enum": [true] }
         },
         "required": ["ok"]
+      },
+      "UserSearchItemDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "jobTitle": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "fullName", "avatarUrl", "jobTitle"]
+      },
+      "ChatRoomTypeResponse": {
+        "type": "string",
+        "enum": ["private", "group"]
+      },
+      "ChatLastMessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "message": { "type": "string" },
+          "senderId": { "type": "string" },
+          "senderFullName": { "type": "string" },
+          "isOwn": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": [
+          "id",
+          "message",
+          "senderId",
+          "senderFullName",
+          "isOwn",
+          "createdAt"
+        ]
+      },
+      "ChatRoomListItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "nullable": true },
+          "displayTitle": { "type": "string" },
+          "type": { "$ref": "#/components/schemas/ChatRoomTypeResponse" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "membersCount": { "type": "integer" },
+          "avatarUrls": { "type": "array", "items": { "type": "string" } },
+          "lastMessage": {
+            "nullable": true,
+            "allOf": [
+              { "$ref": "#/components/schemas/ChatLastMessageResponse" }
+            ]
+          },
+          "unreadCount": { "type": "integer" }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayTitle",
+          "type",
+          "updatedAt",
+          "membersCount",
+          "avatarUrls",
+          "lastMessage",
+          "unreadCount"
+        ]
+      },
+      "ChatMessageSenderPublic": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" },
+          "avatarUrl": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "fullName", "avatarUrl"]
+      },
+      "ChatMessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "roomId": { "type": "string" },
+          "senderId": { "type": "string" },
+          "message": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "sender": { "$ref": "#/components/schemas/ChatMessageSenderPublic" },
+          "isOwn": { "type": "boolean" }
+        },
+        "required": [
+          "id",
+          "roomId",
+          "senderId",
+          "message",
+          "createdAt",
+          "sender",
+          "isOwn"
+        ]
+      },
+      "ChatMessagesPageResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChatMessageResponse" }
+          },
+          "total": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "offset": { "type": "integer" }
+        },
+        "required": ["items", "total", "limit", "offset"]
+      },
+      "ChatRoomResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "nullable": true },
+          "type": { "$ref": "#/components/schemas/ChatRoomTypeResponse" },
+          "createdBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "membersCount": { "type": "integer" }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "createdBy",
+          "createdAt",
+          "updatedAt",
+          "membersCount"
+        ]
+      },
+      "ChatRoomMemberPublic": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "fullName": { "type": "string" },
+          "avatarUrl": { "type": "string", "nullable": true }
+        },
+        "required": ["userId", "fullName", "avatarUrl"]
+      },
+      "ChatRoomDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "nullable": true },
+          "displayTitle": { "type": "string" },
+          "type": { "$ref": "#/components/schemas/ChatRoomTypeResponse" },
+          "createdBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "membersCount": { "type": "integer" },
+          "avatarUrls": { "type": "array", "items": { "type": "string" } },
+          "members": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChatRoomMemberPublic" }
+          },
+          "membersOnlineCount": { "type": "integer" },
+          "unreadCount": { "type": "integer" }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayTitle",
+          "type",
+          "createdBy",
+          "createdAt",
+          "updatedAt",
+          "membersCount",
+          "avatarUrls",
+          "members",
+          "membersOnlineCount",
+          "unreadCount"
+        ]
+      },
+      "CreateRoomDto": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["private", "group"] },
+          "memberIds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          },
+          "name": { "type": "string", "minLength": 1 }
+        },
+        "required": ["type", "memberIds"]
+      },
+      "SendMessageDto": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "minLength": 1, "maxLength": 10000 }
+        },
+        "required": ["message"]
+      },
+      "MarkRoomReadDto": {
+        "type": "object",
+        "properties": {
+          "messageId": { "type": "string", "format": "uuid" }
+        }
       }
     }
   }

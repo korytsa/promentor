@@ -6,7 +6,7 @@ Monorepo: **Nest** (`apps/api`), **Vite/React shell** (`apps/shell`), shared **`
 
 - [promentor](https://github.com/korytsa/promentor)
 - [promentor-chat](https://github.com/korytsa/promentor-chat)
-- [promentor-coaching](https://github.com/korytsa/promentor-coaching)
+- [promentor-coaching](https://github.com/Webprojon/promentor-coaching)
 
 ## Setup
 
@@ -59,19 +59,35 @@ pnpm dev:web
 
 - `http://localhost:4174/assets/remoteEntry.js`
 - `http://localhost:4175/assets/remoteEntry.js`
-- shell routes: `/chat` and `/coaching`
+- shell routes: `/chat`, `/teams`, `/boards`, `/workout-plans`, `/explore-teams`, `/mentors`, `/suggestion`
 
 ### Remote contract (do not break without host update)
 
-- Chat remote: `name: "chatApp"`, exposed module: `./Widget`, import path in shell: `chatApp/Widget`.
-- Coaching remote: `name: "coachingApp"`, exposed module: `./Widget`, import path in shell: `coachingApp/Widget`.
-- Exposed module must keep default export as a React component.
+- Chat remote: `name: "chatApp"`, exposed module: `./ChatPage`, import path in shell: `chatApp/ChatPage`.
+- Coaching remote: `name: "coachingApp"`, exposed modules: `./TeamsPage`, `./BoardsPage`, `./WorkoutPlansPage`, `./ExploreTeamsPage`, `./MentorsPage`, `./SuggestionPage`.
+- Exposed modules must keep default export as React components.
 - `react` and `react-dom` versions must stay compatible between host and remotes.
+
+### Theme contract for remotes
+
+- Source of truth is `document.documentElement`:
+  - `data-theme="light|dark"`
+  - `dark` class (for Tailwind `darkMode: "class"`).
+- Theme mode persistence key: `promentor-theme-mode`.
+- `@promentorapp/ui-kit` `AppThemeProvider` sets DOM theme attributes and shared CSS variables (`--pm-*`) on `<html>`.
+- Remote apps should consume `--pm-*` tokens (`var(--pm-...)`) and should not own an independent global theme state when mounted inside shell.
 
 ### Deploy hosts
 
 - Shell (Vercel): [https://promentor-alpha.vercel.app](https://promentor-alpha.vercel.app)
 - API (Railway): [https://promentor-production.up.railway.app](https://promentor-production.up.railway.app)
+
+**Module federation remotes (production):**
+
+- Chat: [promentor-chat.vercel.app](https://promentor-chat.vercel.app) → `remoteEntry` at `https://promentor-chat.vercel.app/assets/remoteEntry.js`
+- Coaching: [promentor-coaching.vercel.app](https://promentor-coaching.vercel.app) → `https://promentor-coaching.vercel.app/assets/remoteEntry.js`
+
+The shell Vite build reads `VITE_CHAT_REMOTE_URL` and `VITE_COACHING_REMOTE_URL`. They are set in [`vercel.json`](vercel.json) for the shell deployment so the host loads these remotes by default. Override in the Vercel project **Environment Variables** if needed.
 
 ## Env
 
@@ -85,14 +101,14 @@ pnpm dev:web
 - `packages/types` · `packages/ui-kit` — published as **`@promentorapp/types`** / **`@promentorapp/ui-kit`**.
 - `packages/tsconfig` · `packages/eslint-config` — shared config (workspace only).
 
-Tailwind **preflight is off** in the shell so it does not clash with MUI **`CssBaseline`**.
+Tailwind **preflight is on** in the shell; global reset and base styles come from Tailwind + MUI **`CssBaseline`**.
 
 ## npm packages `@promentorapp`
 
 **Published:** `@promentorapp/types`, `@promentorapp/ui-kit` ([npm](https://www.npmjs.com/)).
 
 - **In this repo:** `"@promentorapp/types": "workspace:*"` (and same for `ui-kit`).
-- **Elsewhere:** `pnpm add @promentorapp/types @promentorapp/ui-kit` (pin versions, e.g. `^0.1.0`).
+- **Elsewhere:** `pnpm add @promentorapp/types @promentorapp/ui-kit` (pin versions, e.g. `^0.1.1`).
 - **`ui-kit` peers:** `react`, `react-dom`, `@mui/material`, `@emotion/react`, `@emotion/styled` — copy ranges from `apps/shell/package.json`.
 
 **Publish a new version:** bump `version` in `packages/types` and/or `packages/ui-kit`, then:

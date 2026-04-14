@@ -3,29 +3,29 @@ import { FcGoogle } from "react-icons/fc";
 
 interface GoogleAuthButtonProps {
   label?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 export const GoogleAuthButton = ({
   label = "Continue with Google",
+  onClick,
+  disabled = false,
 }: GoogleAuthButtonProps) => {
-  const comingSoonLabel = `${label} (Coming soon)`;
-
   return (
     <Button
       type="button"
-      customVariant="authGlass"
-      disabled={true}
       fullWidth={true}
-      aria-label={comingSoonLabel}
-      title="Google authentication is coming soon"
+      customVariant="surface"
+      onClick={onClick}
+      disabled={disabled}
       sx={{
-        color: "var(--pm-text-secondary)",
-        border: "1px solid var(--pm-border)",
-        backgroundColor: "var(--pm-surface)",
+        minHeight: "45px",
+        borderRadius: ".5rem",
       }}
     >
       <FcGoogle size={18} aria-hidden="true" className="shrink-0" />
-      {comingSoonLabel}
+      {label}
     </Button>
   );
 };

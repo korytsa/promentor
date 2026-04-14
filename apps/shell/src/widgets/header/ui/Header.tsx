@@ -33,19 +33,19 @@ export const Header = ({ user }: HeaderProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--pm-divider)] px-6 py-3 transition-colors">
+    <header className="sticky top-0 z-50 border-b border-[var(--pm-divider)] px-4 py-3 transition-colors">
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Logo />
 
         <Navigation
           items={navItems}
-          className="hidden lg:flex items-center gap-x-3"
+          className="max-lg:hidden lg:flex items-center gap-x-3"
         />
 
         <div className="flex items-center gap-x-4">
           <Button
             isIconOnly
-            customVariant="glass"
+            customVariant="surface"
             onClick={toggleMode}
             aria-label={themeToggleLabel}
             title={themeToggleLabel}
@@ -61,7 +61,7 @@ export const Header = ({ user }: HeaderProps) => {
           <div className="lg:hidden">
             <Button
               isIconOnly
-              customVariant="glass"
+              customVariant="surface"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

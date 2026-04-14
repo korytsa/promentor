@@ -17,6 +17,7 @@ const ROLE_CONFIG: Record<
       { label: "Teams", to: "/teams" },
       { label: "Boards", to: "/boards" },
       { label: "Workout Plans", to: "/workout-plans" },
+      { label: "Requests", to: "/requests" },
       { label: "Chat", to: "/chat" },
     ],
   },

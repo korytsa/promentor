@@ -10,10 +10,34 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare module "chatApp/ChatPage" {
+declare module "chatApp/ChatEmptyPage" {
   import type { ComponentType } from "react";
-  const ChatPage: ComponentType;
-  export default ChatPage;
+  const ChatEmptyPage: ComponentType;
+  export default ChatEmptyPage;
+}
+
+declare module "chatApp/ChatConversationPage" {
+  import type { ComponentType } from "react";
+  const ChatConversationPage: ComponentType;
+  export default ChatConversationPage;
+}
+
+declare module "chatApp/ChatCreateGroupPage" {
+  import type { ComponentType } from "react";
+  const ChatCreateGroupPage: ComponentType;
+  export default ChatCreateGroupPage;
+}
+
+declare module "chatApp/ChatProfilePage" {
+  import type { ComponentType } from "react";
+  const ChatProfilePage: ComponentType;
+  export default ChatProfilePage;
+}
+
+declare module "chatApp/ChatSidebar" {
+  import type { ComponentType } from "react";
+  const ChatSidebar: ComponentType;
+  export default ChatSidebar;
 }
 
 declare module "coachingApp/TeamsPage" {
@@ -32,6 +56,18 @@ declare module "coachingApp/WorkoutPlansPage" {
   import type { ComponentType } from "react";
   const WorkoutPlansPage: ComponentType;
   export default WorkoutPlansPage;
+}
+
+declare module "coachingApp/RequestsPage" {
+  import type { ComponentType } from "react";
+  const RequestsPage: ComponentType;
+  export default RequestsPage;
+}
+
+declare module "coachingApp/ProfilePage" {
+  import type { ComponentType } from "react";
+  const ProfilePage: ComponentType;
+  export default ProfilePage;
 }
 
 declare module "coachingApp/ExploreTeamsPage" {

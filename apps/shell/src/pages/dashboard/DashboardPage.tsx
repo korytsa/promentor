@@ -8,7 +8,7 @@ export const DashboardPage = () => {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-3xl border pm-border [background-color:var(--pm-accent-blue-soft)] p-8 shadow-[0_20px_80px_rgba(6,182,212,0.12)] md:p-10">
+      <div className="rounded-lg border pm-border [background-color:var(--pm-accent-blue-soft)] p-8 shadow-[0_20px_80px_rgba(6,182,212,0.12)] md:p-10">
         <Typography
           variantStyle="title"
           className="text-3xl md:text-4xl pm-text-primary"
@@ -31,8 +31,7 @@ export const DashboardPage = () => {
         {QUICK_ACTIONS.map((item, index) => (
           <article
             key={item.title}
-            className={`rounded-2xl p-5
-               ${index % 2 === 0 ? "border [border-color:var(--pm-accent-cyan-border)] [background-color:var(--pm-accent-cyan-soft)]" : "border [border-color:var(--pm-accent-blue-border)] [background-color:var(--pm-accent-blue-soft)]"}`}
+            className={`rounded-lg p-5 ${index % 2 === 0 ? "border [border-color:var(--pm-accent-cyan-border)] [background-color:var(--pm-accent-cyan-soft)]" : "border [border-color:var(--pm-accent-blue-border)] [background-color:var(--pm-accent-blue-soft)]"}`}
           >
             <Typography
               component="h2"
@@ -51,7 +50,7 @@ export const DashboardPage = () => {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-2xl border p-6 [border-color:var(--pm-accent-cyan-border)] [background-color:var(--pm-accent-cyan-soft)]">
+        <article className="rounded-lg border p-6 [border-color:var(--pm-accent-cyan-border)] [background-color:var(--pm-accent-cyan-soft)]">
           <Typography
             component="h2"
             className="text-xl font-semibold text-[var(--pm-accent-cyan)]"

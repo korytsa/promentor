@@ -1,6 +1,6 @@
 {
   "name": "@promentorapp/types",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shared TypeScript types for ProMentor frontend apps",
   "type": "module",
   "license": "MIT",

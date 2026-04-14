@@ -7,10 +7,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   const chatRemoteUrl =
-    env.VITE_CHAT_REMOTE_URL || "http://localhost:4174/assets/remoteEntry.js";
+    env.VITE_CHAT_REMOTE_URL ||
+    "https://promentor-chat.vercel.app/assets/remoteEntry.js";
   const coachingRemoteUrl =
     env.VITE_COACHING_REMOTE_URL ||
-    "http://localhost:4175/assets/remoteEntry.js";
+    "https://promentor-coaching.vercel.app/assets/remoteEntry.js";
 
   return {
     optimizeDeps: {
@@ -20,17 +21,35 @@ export default defineConfig(({ mode }) => {
       react(),
       federation({
         name: "shell",
+        exposes: {
+          "./authBridge": "./src/shared/auth/authBridge.ts",
+        },
         remotes: {
           chatApp: chatRemoteUrl,
           coachingApp: coachingRemoteUrl,
         },
-        shared: ["react", "react-dom", "react-router-dom"],
+        shared: [
+          "react",
+          "react-dom",
+          "react-router-dom",
+          "@promentorapp/ui-kit",
+        ],
       }),
     ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+    },
+    server: {
+      port: 5173,
+      strictPort: true,
+      cors: true,
+    },
+    preview: {
+      port: 5173,
+      strictPort: true,
+      cors: true,
     },
     build: {
       target: "esnext",

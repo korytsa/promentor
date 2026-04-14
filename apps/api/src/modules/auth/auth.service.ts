@@ -4,16 +4,16 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { User, UserRole } from "@prisma/client";
+import { Prisma, PrismaClient, UserRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { compare, hash } from "bcryptjs";
 import { Request, Response } from "express";
-import { PrismaService } from "../prisma/prisma.service";
 import { JWT_REFRESH_EXPIRES_IN_DAYS } from "./config/auth-session.config";
 import { REFRESH_TOKEN_COOKIE } from "./constants/auth-cookies.constants";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { AuthUserResponse } from "./types/auth-response.type";
+import { GoogleAuthProfile } from "./types/google-auth-profile.type";
 import { JwtPayload } from "./types/jwt-payload.type";
 import {
   clearAuthCookies,
@@ -23,11 +23,37 @@ import {
 } from "./utils/auth-cookies.util";
 
 const BCRYPT_SALT_ROUNDS = 12;
+const SESSION_USER_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+  avatarUrl: true,
+  jobTitle: true,
+  about: true,
+} as const;
+
+const AUTH_USER_WITH_PASSWORD_SELECT = {
+  ...SESSION_USER_SELECT,
+  passwordHash: true,
+} as const;
+type SessionUser = Prisma.UserGetPayload<{
+  select: typeof SESSION_USER_SELECT;
+}>;
+type AuthUserWithPassword = Prisma.UserGetPayload<{
+  select: typeof AUTH_USER_WITH_PASSWORD_SELECT;
+}>;
+type SessionPrincipal = Pick<AuthUserWithPassword, "id" | "email" | "role">;
+type RoleScopedUser = Pick<AuthUserWithPassword, "role">;
+
+function isGoogleMentorSignupAllowed(): boolean {
+  return process.env.ALLOW_GOOGLE_MENTOR_SIGNUP?.trim() === "true";
+}
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -42,13 +68,15 @@ export class AuthService {
     }
 
     const passwordHash = await hash(dto.password, BCRYPT_SALT_ROUNDS);
+    const fullName = dto.fullName.trim();
     const createdUser = await this.prisma.user.create({
       data: {
-        fullName: dto.fullName.trim(),
+        fullName,
         email: dto.email.toLowerCase(),
         passwordHash,
         role: dto.role ?? UserRole.REGULAR_USER,
       },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     await this.issueSession(res, createdUser);
@@ -58,6 +86,7 @@ export class AuthService {
   async login(dto: LoginDto, res: Response): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     if (!user) {
@@ -69,13 +98,45 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
-    if (user.role !== dto.role) {
-      throw new UnauthorizedException(
-        user.role === UserRole.MENTOR
-          ? "This account is a mentor account. Use the mentor sign-in page."
-          : "This account is a regular user account. Use the regular user sign-in page.",
-      );
+    this.ensureAccountRoleMatchesLogin(user, dto.role);
+
+    await this.issueSession(res, user);
+    return this.mapUser(user);
+  }
+
+  async loginWithGoogle(
+    profile: GoogleAuthProfile,
+    role: UserRole,
+    res: Response,
+  ): Promise<AuthUserResponse> {
+    const email = profile.email.toLowerCase();
+    const fullName = profile.fullName.trim();
+
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
+    });
+
+    if (!user) {
+      if (role === UserRole.MENTOR && !isGoogleMentorSignupAllowed()) {
+        throw new UnauthorizedException(
+          "Mentor Google sign-up is disabled. Contact support.",
+        );
+      }
+
+      user = await this.prisma.user.create({
+        data: {
+          fullName,
+          email,
+          passwordHash: await this.randomPasswordHash(),
+          role,
+          ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
+        },
+        select: AUTH_USER_WITH_PASSWORD_SELECT,
+      });
     }
+
+    this.ensureAccountRoleMatchesLogin(user, role);
 
     await this.issueSession(res, user);
     return this.mapUser(user);
@@ -90,7 +151,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(rawRefresh);
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
-      include: { user: true },
+      include: { user: { select: SESSION_USER_SELECT } },
     });
 
     if (!record || record.expiresAt < new Date()) {
@@ -115,6 +176,7 @@ export class AuthService {
   async getCurrentUser(userId: string): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: SESSION_USER_SELECT,
     });
 
     if (!user) {
@@ -124,7 +186,10 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  private async issueSession(res: Response, user: User): Promise<void> {
+  private async issueSession(
+    res: Response,
+    user: SessionPrincipal,
+  ): Promise<void> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -148,12 +213,32 @@ export class AuthService {
     setAuthCookies(res, accessToken, rawRefresh);
   }
 
-  private mapUser(user: User): AuthUserResponse {
+  private ensureAccountRoleMatchesLogin(
+    user: RoleScopedUser,
+    role: UserRole,
+  ): void {
+    if (user.role !== role) {
+      throw new UnauthorizedException(
+        user.role === UserRole.MENTOR
+          ? "This account is a mentor account. Use the mentor sign-in page."
+          : "This account is a regular user account. Use the regular user sign-in page.",
+      );
+    }
+  }
+
+  private async randomPasswordHash(): Promise<string> {
+    return hash(randomBytes(48).toString("hex"), BCRYPT_SALT_ROUNDS);
+  }
+
+  private mapUser(user: SessionUser): AuthUserResponse {
     return {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      avatarUrl: user.avatarUrl,
+      jobTitle: user.jobTitle,
+      about: user.about,
     };
   }
 }
