@@ -15,7 +15,9 @@ export interface AuthRoleOption {
 export interface User {
   id: string;
   fullName: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   role: UserRole;
   email: string;
+  jobTitle?: string | null;
+  about?: string | null;
 }

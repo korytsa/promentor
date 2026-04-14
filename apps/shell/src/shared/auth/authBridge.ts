@@ -3,7 +3,10 @@ import type { User } from "@/entities/user/types";
 import { authQueryKeys } from "@/features/auth/api";
 import { authLogout } from "@/shared/api/generated/api";
 
-export type AuthUser = Pick<User, "id" | "email" | "fullName" | "role">;
+export type AuthUser = Pick<
+  User,
+  "id" | "email" | "fullName" | "role" | "avatarUrl" | "jobTitle" | "about"
+>;
 
 export type AuthSession = {
   isAuthenticated: boolean;
@@ -34,6 +37,9 @@ function toAuthSession(user: User | null | undefined): AuthSession {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      avatarUrl: user.avatarUrl,
+      jobTitle: user.jobTitle,
+      about: user.about,
     },
   };
 }
@@ -52,10 +58,7 @@ function notify(session: AuthSession) {
 function syncAndNotify(session: AuthSession) {
   if (
     lastSession.isAuthenticated === session.isAuthenticated &&
-    lastSession.user?.id === session.user?.id &&
-    lastSession.user?.email === session.user?.email &&
-    lastSession.user?.fullName === session.user?.fullName &&
-    lastSession.user?.role === session.user?.role
+    JSON.stringify(lastSession.user) === JSON.stringify(session.user)
   ) {
     return;
   }

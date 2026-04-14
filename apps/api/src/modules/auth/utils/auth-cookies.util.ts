@@ -16,6 +16,23 @@ export function getCookieValue(req: Request, name: string): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+export function getCookieFromHeader(
+  cookieHeader: string | undefined,
+  name: string,
+): string | undefined {
+  if (!cookieHeader) {
+    return undefined;
+  }
+  for (const pair of cookieHeader.split(";")) {
+    const [key, ...rest] = pair.trim().split("=");
+    if (key === name) {
+      const value = rest.join("=");
+      return value.length > 0 ? value : undefined;
+    }
+  }
+  return undefined;
+}
+
 function baseCookieOptions(): {
   httpOnly: boolean;
   secure: boolean;

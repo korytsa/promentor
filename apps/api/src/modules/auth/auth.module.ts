@@ -48,5 +48,6 @@ function isGoogleOAuthConfigured(): boolean {
     GoogleAuthGuard,
     ...(isGoogleOAuthConfigured() ? [GoogleStrategy] : []),
   ],
+  exports: [JwtAuthGuard],
 })
 export class AuthModule {}
