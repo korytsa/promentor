@@ -142,7 +142,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(rawRefresh);
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
-      include: { user: true },
+      include: { user: { select: SESSION_USER_SELECT } },
     });
 
     if (!record || record.expiresAt < new Date()) {
