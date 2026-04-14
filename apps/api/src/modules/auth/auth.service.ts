@@ -4,11 +4,10 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Prisma, UserRole } from "@prisma/client";
+import { Prisma, PrismaClient, UserRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { compare, hash } from "bcryptjs";
 import { Request, Response } from "express";
-import { PrismaService } from "../prisma/prisma.service";
 import { JWT_REFRESH_EXPIRES_IN_DAYS } from "./config/auth-session.config";
 import { REFRESH_TOKEN_COOKIE } from "./constants/auth-cookies.constants";
 import { LoginDto } from "./dto/login.dto";
@@ -46,7 +45,7 @@ function isGoogleMentorSignupAllowed(): boolean {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -61,9 +60,10 @@ export class AuthService {
     }
 
     const passwordHash = await hash(dto.password, BCRYPT_SALT_ROUNDS);
+    const fullName = dto.fullName.trim();
     const createdUser = await this.prisma.user.create({
       data: {
-        fullName: dto.fullName.trim(),
+        fullName,
         email: dto.email.toLowerCase(),
         passwordHash,
         role: dto.role ?? UserRole.REGULAR_USER,
@@ -90,13 +90,7 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
-    if (user.role !== dto.role) {
-      throw new UnauthorizedException(
-        user.role === UserRole.MENTOR
-          ? "This account is a mentor account. Use the mentor sign-in page."
-          : "This account is a regular user account. Use the regular user sign-in page.",
-      );
-    }
+    this.ensureAccountRoleMatchesLogin(user, dto.role);
 
     await this.issueSession(res, user);
     return this.mapUser(user);
@@ -122,29 +116,18 @@ export class AuthService {
         );
       }
 
-      const generatedPasswordHash = await hash(
-        randomBytes(48).toString("hex"),
-        BCRYPT_SALT_ROUNDS,
-      );
-
       user = await this.prisma.user.create({
         data: {
           fullName,
           email,
-          passwordHash: generatedPasswordHash,
+          passwordHash: await this.randomPasswordHash(),
           role,
         },
         select: AUTH_USER_WITH_PASSWORD_SELECT,
       });
     }
 
-    if (user.role !== role) {
-      throw new UnauthorizedException(
-        user.role === UserRole.MENTOR
-          ? "This account is a mentor account. Use the mentor sign-in page."
-          : "This account is a regular user account. Use the regular user sign-in page.",
-      );
-    }
+    this.ensureAccountRoleMatchesLogin(user, role);
 
     await this.issueSession(res, user);
     return this.mapUser(user);
@@ -224,12 +207,35 @@ export class AuthService {
     setAuthCookies(res, accessToken, rawRefresh);
   }
 
+  private ensureAccountRoleMatchesLogin(
+    user: Pick<
+      Prisma.UserGetPayload<{ select: typeof AUTH_USER_WITH_PASSWORD_SELECT }>,
+      "role"
+    >,
+    role: UserRole,
+  ): void {
+    if (user.role !== role) {
+      throw new UnauthorizedException(
+        user.role === UserRole.MENTOR
+          ? "This account is a mentor account. Use the mentor sign-in page."
+          : "This account is a regular user account. Use the regular user sign-in page.",
+      );
+    }
+  }
+
+  private async randomPasswordHash(): Promise<string> {
+    return hash(randomBytes(48).toString("hex"), BCRYPT_SALT_ROUNDS);
+  }
+
   private mapUser(user: SessionUser): AuthUserResponse {
     return {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      avatarUrl: null,
+      jobTitle: null,
+      about: null,
     };
   }
 }

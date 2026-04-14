@@ -25,6 +25,9 @@ function dtoToUser(dto: AuthUserResponseDto): User {
     fullName: dto.fullName,
     email: dto.email,
     role: dto.role,
+    avatarUrl: dto.avatarUrl ?? undefined,
+    jobTitle: dto.jobTitle ?? undefined,
+    about: dto.about ?? undefined,
   };
 }
 

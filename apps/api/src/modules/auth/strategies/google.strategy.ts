@@ -54,11 +54,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
         .trim() ||
       primaryEmail;
 
+    const avatarUrl = profile.photos?.[0]?.value?.trim();
+
     const state = decodeGoogleAuthState(req.query?.state);
     done(null, {
       profile: {
         email: primaryEmail,
         fullName,
+        ...(avatarUrl ? { avatarUrl } : {}),
       },
       state,
     });
