@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { User, UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { compare, hash } from "bcryptjs";
 import { Request, Response } from "express";
@@ -24,6 +24,23 @@ import {
 } from "./utils/auth-cookies.util";
 
 const BCRYPT_SALT_ROUNDS = 12;
+const SESSION_USER_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+} satisfies Prisma.UserSelect;
+
+const AUTH_USER_WITH_PASSWORD_SELECT = {
+  ...SESSION_USER_SELECT,
+  passwordHash: true,
+} satisfies Prisma.UserSelect;
+type SessionUser = Prisma.UserGetPayload<{
+  select: typeof SESSION_USER_SELECT;
+}>;
+type AuthUserWithPassword = Prisma.UserGetPayload<{
+  select: typeof AUTH_USER_WITH_PASSWORD_SELECT;
+}>;
 
 function isGoogleMentorSignupAllowed(): boolean {
   return process.env.ALLOW_GOOGLE_MENTOR_SIGNUP?.trim() === "true";
@@ -54,6 +71,7 @@ export class AuthService {
         passwordHash,
         role: dto.role ?? UserRole.REGULAR_USER,
       },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     await this.issueSession(res, createdUser);
@@ -63,6 +81,7 @@ export class AuthService {
   async login(dto: LoginDto, res: Response): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     if (!user) {
@@ -96,6 +115,7 @@ export class AuthService {
 
     let user = await this.prisma.user.findUnique({
       where: { email },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     if (!user) {
@@ -117,6 +137,7 @@ export class AuthService {
           passwordHash: generatedPasswordHash,
           role,
         },
+        select: AUTH_USER_WITH_PASSWORD_SELECT,
       });
     }
 
@@ -166,6 +187,7 @@ export class AuthService {
   async getCurrentUser(userId: string): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: SESSION_USER_SELECT,
     });
 
     if (!user) {
@@ -175,7 +197,10 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  private async issueSession(res: Response, user: User): Promise<void> {
+  private async issueSession(
+    res: Response,
+    user: Pick<AuthUserWithPassword, "id" | "email" | "role">,
+  ): Promise<void> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -199,7 +224,7 @@ export class AuthService {
     setAuthCookies(res, accessToken, rawRefresh);
   }
 
-  private mapUser(user: User): AuthUserResponse {
+  private mapUser(user: SessionUser): AuthUserResponse {
     return {
       id: user.id,
       fullName: user.fullName,
