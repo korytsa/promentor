@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { PrismaClient, User, UserRole } from "@prisma/client";
+import { Prisma, PrismaClient, UserRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { compare, hash } from "bcryptjs";
 import { Request, Response } from "express";
@@ -23,6 +23,28 @@ import {
 } from "./utils/auth-cookies.util";
 
 const BCRYPT_SALT_ROUNDS = 12;
+const SESSION_USER_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+  avatarUrl: true,
+  jobTitle: true,
+  about: true,
+} as const;
+
+const AUTH_USER_WITH_PASSWORD_SELECT = {
+  ...SESSION_USER_SELECT,
+  passwordHash: true,
+} as const;
+type SessionUser = Prisma.UserGetPayload<{
+  select: typeof SESSION_USER_SELECT;
+}>;
+type AuthUserWithPassword = Prisma.UserGetPayload<{
+  select: typeof AUTH_USER_WITH_PASSWORD_SELECT;
+}>;
+type SessionPrincipal = Pick<AuthUserWithPassword, "id" | "email" | "role">;
+type RoleScopedUser = Pick<AuthUserWithPassword, "role">;
 
 function isGoogleMentorSignupAllowed(): boolean {
   return process.env.ALLOW_GOOGLE_MENTOR_SIGNUP?.trim() === "true";
@@ -54,6 +76,7 @@ export class AuthService {
         passwordHash,
         role: dto.role ?? UserRole.REGULAR_USER,
       },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     await this.issueSession(res, createdUser);
@@ -63,6 +86,7 @@ export class AuthService {
   async login(dto: LoginDto, res: Response): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     if (!user) {
@@ -90,6 +114,7 @@ export class AuthService {
 
     let user = await this.prisma.user.findUnique({
       where: { email },
+      select: AUTH_USER_WITH_PASSWORD_SELECT,
     });
 
     if (!user) {
@@ -105,8 +130,9 @@ export class AuthService {
           email,
           passwordHash: await this.randomPasswordHash(),
           role,
-          avatarUrl: profile.avatarUrl ?? null,
+          ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
         },
+        select: AUTH_USER_WITH_PASSWORD_SELECT,
       });
     }
 
@@ -125,7 +151,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(rawRefresh);
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
-      include: { user: true },
+      include: { user: { select: SESSION_USER_SELECT } },
     });
 
     if (!record || record.expiresAt < new Date()) {
@@ -150,6 +176,7 @@ export class AuthService {
   async getCurrentUser(userId: string): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: SESSION_USER_SELECT,
     });
 
     if (!user) {
@@ -159,25 +186,10 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  private ensureAccountRoleMatchesLogin(
-    user: User,
-    expectedRole: UserRole,
-  ): void {
-    if (user.role === expectedRole) {
-      return;
-    }
-    throw new UnauthorizedException(
-      user.role === UserRole.MENTOR
-        ? "This account is a mentor account. Use the mentor sign-in page."
-        : "This account is a regular user account. Use the regular user sign-in page.",
-    );
-  }
-
-  private async randomPasswordHash(): Promise<string> {
-    return hash(randomBytes(48).toString("hex"), BCRYPT_SALT_ROUNDS);
-  }
-
-  private async issueSession(res: Response, user: User): Promise<void> {
+  private async issueSession(
+    res: Response,
+    user: SessionPrincipal,
+  ): Promise<void> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -201,7 +213,24 @@ export class AuthService {
     setAuthCookies(res, accessToken, rawRefresh);
   }
 
-  private mapUser(user: User): AuthUserResponse {
+  private ensureAccountRoleMatchesLogin(
+    user: RoleScopedUser,
+    role: UserRole,
+  ): void {
+    if (user.role !== role) {
+      throw new UnauthorizedException(
+        user.role === UserRole.MENTOR
+          ? "This account is a mentor account. Use the mentor sign-in page."
+          : "This account is a regular user account. Use the regular user sign-in page.",
+      );
+    }
+  }
+
+  private async randomPasswordHash(): Promise<string> {
+    return hash(randomBytes(48).toString("hex"), BCRYPT_SALT_ROUNDS);
+  }
+
+  private mapUser(user: SessionUser): AuthUserResponse {
     return {
       id: user.id,
       fullName: user.fullName,
