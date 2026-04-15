@@ -78,7 +78,7 @@ const remoteRoutes: RemoteRouteConfig[] = [
     element: <WorkoutPlansPage />,
   },
   {
-    path: "/requests",
+    path: "/requests/:direction",
     title: "Requests",
     loadingText: "Loading requests...",
     element: <RequestsPage />,
