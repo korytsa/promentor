@@ -6,7 +6,6 @@ import { RequireAuth, RequireGuest, UnknownPathRedirect } from "./routing";
 
 const ChatEmptyPage = lazy(() => import("chatApp/ChatEmptyPage"));
 const ChatCreateGroupPage = lazy(() => import("chatApp/ChatCreateGroupPage"));
-const ChatProfilePage = lazy(() => import("chatApp/ChatProfilePage"));
 const ChatConversationPage = lazy(() => import("chatApp/ChatConversationPage"));
 const ChatSidebar = lazy(() => import("chatApp/ChatSidebar"));
 
@@ -53,18 +52,6 @@ const remoteRoutes: RemoteRouteConfig[] = [
     title: "Create Group",
     loadingText: "Loading create group...",
     element: <ChatCreateGroupPage />,
-  },
-  {
-    path: "/chat/profile",
-    title: "Profile",
-    loadingText: "Loading profile...",
-    element: <ChatProfilePage />,
-  },
-  {
-    path: "/chat/profile/:slug",
-    title: "Profile",
-    loadingText: "Loading profile...",
-    element: <ChatProfilePage />,
   },
   {
     path: "/chat/:chatId",
