@@ -107,7 +107,7 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LogoutResponseDto" }
+                "schema": { "$ref": "#/components/schemas/OkResponseDto" }
               }
             }
           }
@@ -130,6 +130,28 @@
           "401": {
             "description": "Not authenticated"
           }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "usersList",
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": "All users visible to authenticated clients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuthUserResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated" }
         }
       }
     },
@@ -166,6 +188,49 @@
           "400": { "description": "Empty or invalid query" },
           "401": { "description": "Not authenticated" },
           "429": { "description": "Too many requests" }
+        }
+      }
+    },
+    "/users/me": {
+      "patch": {
+        "operationId": "usersUpdateMe",
+        "tags": ["users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateMyUserDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated current user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid update payload" },
+          "401": { "description": "Not authenticated" }
+        }
+      },
+      "delete": {
+        "operationId": "usersDeleteMe",
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": "Current user deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OkResponseDto" }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated" }
         }
       }
     },
@@ -430,16 +495,18 @@
       "AuthSessionResponseDto": {
         "type": "object",
         "properties": {
+          "message": { "type": "string" },
           "user": { "$ref": "#/components/schemas/AuthUserResponseDto" }
         },
-        "required": ["user"]
+        "required": ["message", "user"]
       },
-      "LogoutResponseDto": {
+      "OkResponseDto": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "enum": [true] }
+          "ok": { "type": "boolean", "enum": [true] },
+          "message": { "type": "string" }
         },
-        "required": ["ok"]
+        "required": ["ok", "message"]
       },
       "UserSearchItemDto": {
         "type": "object",
@@ -450,6 +517,43 @@
           "jobTitle": { "type": "string", "nullable": true }
         },
         "required": ["id", "fullName", "avatarUrl", "jobTitle"]
+      },
+      "UserListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "jobTitle": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "fullName", "role", "avatarUrl", "jobTitle"]
+      },
+      "UserUpdateResponseDto": {
+        "allOf": [
+          { "$ref": "#/components/schemas/AuthUserResponseDto" },
+          {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string" }
+            },
+            "required": ["message"]
+          }
+        ]
+      },
+      "UpdateMyUserDto": {
+        "type": "object",
+        "properties": {
+          "fullName": { "type": "string", "minLength": 3, "maxLength": 120 },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "nullable": true
+          },
+          "jobTitle": { "type": "string", "maxLength": 120, "nullable": true },
+          "about": { "type": "string", "maxLength": 2000, "nullable": true }
+        }
       },
       "ChatRoomTypeResponse": {
         "type": "string",

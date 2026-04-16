@@ -1,6 +1,7 @@
-import { ValidationPipe } from "@nestjs/common";
+import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
+import { ApiExceptionFilter } from "../common/http/api-exception.filter";
 import { createCorsOptions } from "../config/cors.config";
 
 export function applyTrustProxy(app: NestExpressApplication): void {
@@ -21,11 +22,19 @@ export function applyTrustProxy(app: NestExpressApplication): void {
 export function applyHttpAppSetup(app: NestExpressApplication): void {
   app.use(cookieParser());
   app.enableCors(createCorsOptions());
+  app.useGlobalFilters(new ApiExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        const firstConstraint = errors
+          .flatMap((error) => Object.values(error.constraints ?? {}))
+          .find((message) => typeof message === "string");
+
+        return new BadRequestException(firstConstraint ?? "Validation failed");
+      },
     }),
   );
 }

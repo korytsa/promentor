@@ -86,18 +86,32 @@ describe("Users search (e2e)", () => {
   });
 
   it("returns 401 without access token", async () => {
-    await request(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get("/users/search")
       .query({ q: "Two" })
       .expect(401);
+
+    expect(res.body).toMatchObject({
+      success: false,
+      statusCode: 401,
+      message: "Missing access token",
+      error: "Unauthorized",
+    });
   });
 
   it("returns 400 for empty search query", async () => {
-    await request(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get("/users/search")
       .query({ q: "   " })
       .set("Cookie", [`access_token=${accessTokenUser1}`])
       .expect(400);
+
+    expect(res.body).toMatchObject({
+      success: false,
+      statusCode: 400,
+      message: expect.any(String),
+      error: "Bad Request",
+    });
   });
 });
 
