@@ -16,6 +16,7 @@ export type AuthSession = {
 export type AuthBridge = {
   getSession: () => AuthSession;
   subscribe: (listener: (session: AuthSession) => void) => () => void;
+  setSession: (user: AuthUser | null) => void;
   logout: () => Promise<void>;
 };
 
@@ -112,6 +113,13 @@ export const authBridge: AuthBridge = {
     return () => {
       listeners.delete(listener);
     };
+  },
+  setSession: (user) => {
+    if (!queryClientRef) {
+      throw new Error("Auth bridge is not initialized");
+    }
+
+    queryClientRef.setQueryData(authQueryKeys.session(), user);
   },
   logout: async () => {
     if (!queryClientRef) {

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import type { NavItem } from "@/entities/user/types";
 import { cn } from "@/shared/lib/utils";
 
@@ -15,12 +15,17 @@ export const Navigation = ({
   onItemClick,
   isMobile,
 }: NavigationProps) => {
-  const getStyle = ({ isActive }: { isActive: boolean }) =>
+  const location = useLocation();
+
+  const getStyle = (item: NavItem, isActive: boolean) =>
     cn(
       isMobile
         ? "px-4 py-3 rounded-xl text-sm font-bold transition-all"
         : "px-4 py-2 font-semibold text-sm tracking-wider uppercase transition-all duration-300 rounded-lg",
-      isActive
+      isActive ||
+        Boolean(
+          item.matchPrefix && location.pathname.startsWith(item.matchPrefix),
+        )
         ? isMobile
           ? "text-[var(--pm-accent-blue)] [background-color:var(--pm-accent-blue-soft)]"
           : "text-[var(--pm-accent-blue)] [background-color:var(--pm-accent-blue-soft)]"
@@ -34,7 +39,7 @@ export const Navigation = ({
           key={item.to}
           to={item.to}
           onClick={onItemClick}
-          className={getStyle}
+          className={({ isActive }) => getStyle(item, isActive)}
         >
           {item.label}
         </NavLink>

@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
 import { Request, Response } from "express";
+import { ok, withMessage } from "../../common/http/api-response";
 import { AuthService } from "./auth.service";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { LoginDto } from "./dto/login.dto";
@@ -20,6 +21,7 @@ import { GoogleOAuthRequestUser } from "./strategies/google.strategy";
 import {
   AuthSessionResponse,
   AuthUserResponse,
+  OkResponse,
 } from "./types/auth-response.type";
 import { JwtPayload } from "./types/jwt-payload.type";
 import { getRoleParam } from "./utils/google-auth-state.util";
@@ -79,7 +81,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthSessionResponse> {
     const user = await this.authService.register(dto, res);
-    return { user };
+    return withMessage({ user }, "Registration successful");
   }
 
   @Post("login")
@@ -88,7 +90,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthSessionResponse> {
     const user = await this.authService.login(dto, res);
-    return { user };
+    return withMessage({ user }, "Login successful");
   }
 
   @Post("refresh")
@@ -97,16 +99,16 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthSessionResponse> {
     const user = await this.authService.refresh(req, res);
-    return { user };
+    return withMessage({ user }, "Session refreshed successfully");
   }
 
   @Post("logout")
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ ok: true }> {
+  ): Promise<OkResponse> {
     await this.authService.logout(req, res);
-    return { ok: true };
+    return ok("Logout successful");
   }
 
   @UseGuards(JwtAuthGuard)

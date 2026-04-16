@@ -1,15 +1,11 @@
-import { UserRole } from "@prisma/client";
+import type { OkResponse } from "../../../common/http/api-response";
+import type { UserResponse } from "../../users/types/user-response.type";
 
-export interface AuthUserResponse {
-  id: string;
-  fullName: string;
-  email: string;
-  role: UserRole;
-  avatarUrl: string | null;
-  jobTitle: string | null;
-  about: string | null;
-}
+export type AuthUserResponse = UserResponse;
 
 export interface AuthSessionResponse {
+  message: string;
   user: AuthUserResponse;
 }
+
+export type { OkResponse };
