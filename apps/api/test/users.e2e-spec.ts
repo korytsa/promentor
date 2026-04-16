@@ -175,12 +175,13 @@ describe("GET /users pagination (e2e)", () => {
 
 describe("Users me endpoints (e2e)", () => {
   let app: NestExpressApplication;
+  let fakePrisma: FakePrismaService;
   let existingUserToken: string;
   let missingUserToken: string;
 
   beforeAll(async () => {
     process.env.NODE_ENV = "development";
-    const fakePrisma = new FakePrismaService();
+    fakePrisma = new FakePrismaService();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -257,6 +258,30 @@ describe("Users me endpoints (e2e)", () => {
       message: "User not found",
       error: "Not Found",
     });
+  });
+
+  it("does not map unrelated Prisma errors to 404", async () => {
+    const prismaError = new Error("Unique constraint failed") as Error & {
+      code: string;
+    };
+    prismaError.code = "P2002";
+    fakePrisma.userUpdateError = prismaError;
+    try {
+      const res = await request(app.getHttpServer())
+        .patch("/users/me")
+        .set("Cookie", [`access_token=${existingUserToken}`])
+        .send({ fullName: "Still Valid Name" })
+        .expect(500);
+
+      expect(res.body).toMatchObject({
+        success: false,
+        statusCode: 500,
+        message: "Internal server error",
+        error: "InternalServerError",
+      });
+    } finally {
+      fakePrisma.userUpdateError = null;
+    }
   });
 });
 

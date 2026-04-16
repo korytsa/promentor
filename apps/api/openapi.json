@@ -516,7 +516,7 @@
       "OkResponseDto": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "enum": [true] },
+          "ok": { "type": "boolean" },
           "message": { "type": "string" }
         },
         "required": ["ok", "message"]

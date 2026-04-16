@@ -30,7 +30,8 @@ const USER_SEARCH_SELECT = {
 
 function isRecordNotFoundError(error: unknown): boolean {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025") ||
     (typeof error === "object" &&
       error !== null &&
       "code" in error &&

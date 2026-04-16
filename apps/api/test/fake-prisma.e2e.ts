@@ -29,6 +29,8 @@ export type FakeMessage = {
 };
 
 export class FakePrismaService {
+  userUpdateError: Error | null = null;
+  userDeleteError: Error | null = null;
   users: FakeUser[] = [
     {
       id: "user_1",
@@ -217,6 +219,10 @@ export class FakePrismaService {
       jobTitle: string | null;
       about: string | null;
     }> => {
+      if (this.userUpdateError) {
+        throw this.userUpdateError;
+      }
+
       const user = this.users.find((entry) => entry.id === args.where.id);
       if (!user) {
         const error = new Error("User not found") as Error & { code: string };
@@ -239,6 +245,10 @@ export class FakePrismaService {
     delete: async (args: {
       where: { id: string };
     }): Promise<{ id: string }> => {
+      if (this.userDeleteError) {
+        throw this.userDeleteError;
+      }
+
       const index = this.users.findIndex((entry) => entry.id === args.where.id);
       if (index === -1) {
         const error = new Error("User not found") as Error & { code: string };

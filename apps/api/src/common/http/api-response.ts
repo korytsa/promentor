@@ -1,5 +1,5 @@
 export interface OkResponse {
-  ok: true;
+  ok: boolean;
   message: string;
 }
 
