@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "mf:serve": "vite build && vite preview --strictPort --port 4173",
     "build": "vite build",
     "codegen": "orval --config orval.config.ts",
     "lint": "eslint .",
