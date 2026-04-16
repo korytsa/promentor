@@ -1,11 +1,13 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
+  NotFoundException,
 } from "@nestjs/common";
 import { Prisma, PrismaClient } from "@prisma/client";
+import { ListUsersQueryDto } from "./dto/list-users.query.dto";
 import { UpdateMyUserDto } from "./dto/update-my-user.dto";
 import { SearchUsersQueryDto } from "./dto/search-users.query.dto";
+import { UsersListResponse } from "./types/user-list-response.type";
 import {
   toUserResponse,
   USER_RESPONSE_SELECT,
@@ -15,6 +17,9 @@ import { UserSearchItemResponse } from "./types/user-search-response.type";
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 50;
+const DEFAULT_LIST_LIMIT = 25;
+const MAX_LIST_LIMIT = 100;
+const DEFAULT_LIST_OFFSET = 0;
 
 const USER_SEARCH_SELECT = {
   id: true,
@@ -23,17 +28,40 @@ const USER_SEARCH_SELECT = {
   jobTitle: true,
 } as const;
 
+function isRecordNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError ||
+    (typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2025")
+  );
+}
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async listUsers(): Promise<UserResponse[]> {
-    const users = await this.prisma.user.findMany({
-      select: USER_RESPONSE_SELECT,
-      orderBy: [{ fullName: "asc" }, { createdAt: "asc" }],
-    });
+  async listUsers(query: ListUsersQueryDto): Promise<UsersListResponse> {
+    const limit = query.limit ?? DEFAULT_LIST_LIMIT;
+    const offset = query.offset ?? DEFAULT_LIST_OFFSET;
 
-    return users.map(toUserResponse);
+    const [total, users] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.user.findMany({
+        select: USER_RESPONSE_SELECT,
+        orderBy: [{ fullName: "asc" }, { createdAt: "asc" }],
+        skip: offset,
+        take: Math.min(limit, MAX_LIST_LIMIT),
+      }),
+    ]);
+
+    return {
+      items: users.map(toUserResponse),
+      total,
+      limit: Math.min(limit, MAX_LIST_LIMIT),
+      offset,
+    };
   }
 
   async searchUsers(
@@ -99,11 +127,8 @@ export class UsersService {
 
       return toUserResponse(user);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new UnauthorizedException("User not found");
+      if (isRecordNotFoundError(error)) {
+        throw new NotFoundException("User not found");
       }
       throw error;
     }
@@ -115,11 +140,8 @@ export class UsersService {
         where: { id: userId },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new UnauthorizedException("User not found");
+      if (isRecordNotFoundError(error)) {
+        throw new NotFoundException("User not found");
       }
       throw error;
     }

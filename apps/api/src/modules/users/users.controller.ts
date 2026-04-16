@@ -12,8 +12,10 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { OkResponse } from "../auth/types/auth-response.type";
 import { JwtPayload } from "../auth/types/jwt-payload.type";
+import { ListUsersQueryDto } from "./dto/list-users.query.dto";
 import { UpdateMyUserDto } from "./dto/update-my-user.dto";
 import { SearchUsersQueryDto } from "./dto/search-users.query.dto";
+import { UsersListResponse } from "./types/user-list-response.type";
 import { UserResponse } from "./types/user-response.type";
 import { UserSearchItemResponse } from "./types/user-search-response.type";
 import { ThrottlerUserGuard } from "./throttler-user.guard";
@@ -25,8 +27,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  listUsers(): Promise<UserResponse[]> {
-    return this.usersService.listUsers();
+  listUsers(@Query() query: ListUsersQueryDto): Promise<UsersListResponse> {
+    return this.usersService.listUsers(query);
   }
 
   @Get("search")

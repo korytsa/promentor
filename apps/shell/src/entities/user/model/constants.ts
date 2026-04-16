@@ -4,6 +4,7 @@ import type { AuthMode, AuthRoleOption, NavItem, UserRole } from "../types";
 export const AUTH_LOGIN_REDIRECT_PATH = "/login/mentor";
 
 export const AUTH_APP_HOME_PATH = "/";
+export const REQUESTS_DEFAULT_PATH = "/requests/sent";
 
 const ROLE_CONFIG: Record<
   UserRole,
@@ -17,7 +18,11 @@ const ROLE_CONFIG: Record<
       { label: "Teams", to: "/teams" },
       { label: "Boards", to: "/boards" },
       { label: "Workout Plans", to: "/workout-plans" },
-      { label: "Requests", to: "/requests/:direction" },
+      {
+        label: "Requests",
+        to: REQUESTS_DEFAULT_PATH,
+        matchPrefix: "/requests/",
+      },
       { label: "Chat", to: "/chat" },
     ],
   },

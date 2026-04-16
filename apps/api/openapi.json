@@ -137,16 +137,27 @@
       "get": {
         "operationId": "usersList",
         "tags": ["users"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0 }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "All users visible to authenticated clients",
+            "description": "Paginated users visible to authenticated clients",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AuthUserResponseDto"
-                  }
+                  "$ref": "#/components/schemas/UsersListResponseDto"
                 }
               }
             }
@@ -215,7 +226,8 @@
             }
           },
           "400": { "description": "Invalid update payload" },
-          "401": { "description": "Not authenticated" }
+          "401": { "description": "Not authenticated" },
+          "404": { "description": "User not found" }
         }
       },
       "delete": {
@@ -230,7 +242,8 @@
               }
             }
           },
-          "401": { "description": "Not authenticated" }
+          "401": { "description": "Not authenticated" },
+          "404": { "description": "User not found" }
         }
       }
     },
@@ -528,6 +541,19 @@
           "jobTitle": { "type": "string", "nullable": true }
         },
         "required": ["id", "fullName", "role", "avatarUrl", "jobTitle"]
+      },
+      "UsersListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuthUserResponseDto" }
+          },
+          "total": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "offset": { "type": "integer" }
+        },
+        "required": ["items", "total", "limit", "offset"]
       },
       "UserUpdateResponseDto": {
         "allOf": [

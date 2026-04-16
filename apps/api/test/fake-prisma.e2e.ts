@@ -1,10 +1,13 @@
-import { ChatRoomType } from "@prisma/client";
+import { ChatRoomType, UserRole } from "@prisma/client";
 
 export type FakeUser = {
   id: string;
   fullName: string;
+  email: string;
+  role: UserRole;
   avatarUrl: string | null;
   jobTitle?: string | null;
+  about?: string | null;
 };
 export type FakeRoom = {
   id: string;
@@ -30,20 +33,29 @@ export class FakePrismaService {
     {
       id: "user_1",
       fullName: "User One",
+      email: "u1@test.dev",
+      role: UserRole.MENTOR,
       avatarUrl: null,
       jobTitle: "Senior Engineer",
+      about: null,
     },
     {
       id: "user_2",
       fullName: "User Two",
+      email: "u2@test.dev",
+      role: UserRole.REGULAR_USER,
       avatarUrl: null,
       jobTitle: "Designer",
+      about: null,
     },
     {
       id: "user_3",
       fullName: "User Three",
+      email: "u3@test.dev",
+      role: UserRole.REGULAR_USER,
       avatarUrl: null,
       jobTitle: null,
+      about: null,
     },
   ];
   rooms: FakeRoom[] = [
@@ -75,8 +87,9 @@ export class FakePrismaService {
   };
 
   user = {
+    count: async (): Promise<number> => this.users.length,
     findMany: async (args: {
-      where:
+      where?:
         | { id: { in: string[] } }
         | {
             id: { not: string };
@@ -90,13 +103,34 @@ export class FakePrismaService {
         | {
             id: true;
             fullName: true;
+            email: true;
+            role: true;
+            avatarUrl: true;
+            jobTitle: true;
+            about: true;
+          }
+        | {
+            id: true;
+            fullName: true;
             avatarUrl: true;
             jobTitle: true;
           };
-      orderBy?: { fullName: "asc" };
+      orderBy?:
+        | Array<{ fullName: "asc" } | { createdAt: "asc" }>
+        | { fullName: "asc" };
+      skip?: number;
       take?: number;
     }): Promise<
       | Array<{ id: string }>
+      | Array<{
+          id: string;
+          fullName: string;
+          email: string;
+          role: UserRole;
+          avatarUrl: string | null;
+          jobTitle: string | null;
+          about: string | null;
+        }>
       | Array<{
           id: string;
           fullName: string;
@@ -105,6 +139,22 @@ export class FakePrismaService {
         }>
     > => {
       const where = args.where;
+      if (!where) {
+        const skip = args.skip ?? 0;
+        const take = args.take ?? this.users.length;
+        const rows = [...this.users].sort((a, b) =>
+          a.fullName.localeCompare(b.fullName),
+        );
+        return rows.slice(skip, skip + take).map((user) => ({
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          avatarUrl: user.avatarUrl,
+          jobTitle: user.jobTitle ?? null,
+          about: user.about ?? null,
+        }));
+      }
       if ("in" in where.id) {
         const ids = new Set(where.id.in);
         return this.users
@@ -140,6 +190,64 @@ export class FakePrismaService {
           jobTitle: u.jobTitle ?? null,
         }));
       }
+    },
+    update: async (args: {
+      where: { id: string };
+      data: {
+        fullName?: string;
+        avatarUrl?: string | null;
+        jobTitle?: string | null;
+        about?: string | null;
+      };
+      select: {
+        id: true;
+        fullName: true;
+        email: true;
+        role: true;
+        avatarUrl: true;
+        jobTitle: true;
+        about: true;
+      };
+    }): Promise<{
+      id: string;
+      fullName: string;
+      email: string;
+      role: UserRole;
+      avatarUrl: string | null;
+      jobTitle: string | null;
+      about: string | null;
+    }> => {
+      const user = this.users.find((entry) => entry.id === args.where.id);
+      if (!user) {
+        const error = new Error("User not found") as Error & { code: string };
+        error.code = "P2025";
+        throw error;
+      }
+
+      Object.assign(user, args.data);
+
+      return {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        jobTitle: user.jobTitle ?? null,
+        about: user.about ?? null,
+      };
+    },
+    delete: async (args: {
+      where: { id: string };
+    }): Promise<{ id: string }> => {
+      const index = this.users.findIndex((entry) => entry.id === args.where.id);
+      if (index === -1) {
+        const error = new Error("User not found") as Error & { code: string };
+        error.code = "P2025";
+        throw error;
+      }
+
+      const [deleted] = this.users.splice(index, 1);
+      return { id: deleted!.id };
     },
   };
 

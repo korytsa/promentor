@@ -4,6 +4,7 @@ export type AuthMode = "login" | "register";
 export interface NavItem {
   label: string;
   to: string;
+  matchPrefix?: string;
 }
 
 export interface AuthRoleOption {

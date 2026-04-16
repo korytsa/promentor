@@ -29,11 +29,13 @@ export function applyHttpAppSetup(app: NestExpressApplication): void {
       forbidNonWhitelisted: true,
       transform: true,
       exceptionFactory: (errors) => {
-        const firstConstraint = errors
+        const messages = errors
           .flatMap((error) => Object.values(error.constraints ?? {}))
-          .find((message) => typeof message === "string");
+          .filter((message): message is string => typeof message === "string");
 
-        return new BadRequestException(firstConstraint ?? "Validation failed");
+        return new BadRequestException(
+          messages.length > 0 ? messages : "Validation failed",
+        );
       },
     }),
   );
