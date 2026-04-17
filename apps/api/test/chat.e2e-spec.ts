@@ -59,7 +59,9 @@ describe("Chat backend (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    app = moduleFixture.createNestApplication<NestExpressApplication>({
+      bodyParser: false,
+    });
     applyTrustProxy(app);
     applyHttpAppSetup(app);
 

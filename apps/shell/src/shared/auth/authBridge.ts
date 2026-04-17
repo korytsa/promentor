@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type { User } from "@/entities/user/types";
+import { AUTH_LOGIN_REDIRECT_PATH } from "@/entities/user/model/constants";
 import { authQueryKeys } from "@/features/auth/api";
 import { authLogout } from "@/shared/api/generated/api";
 
@@ -122,14 +123,15 @@ export const authBridge: AuthBridge = {
     queryClientRef.setQueryData(authQueryKeys.session(), user);
   },
   logout: async () => {
-    if (!queryClientRef) {
-      throw new Error("Auth bridge is not initialized");
-    }
-
     try {
-      await authLogout();
+      await authLogout().catch(() => undefined);
+      if (queryClientRef) {
+        queryClientRef.setQueryData(authQueryKeys.session(), null);
+      }
     } finally {
-      queryClientRef.setQueryData(authQueryKeys.session(), null);
+      window.location.replace(
+        `${window.location.origin}${AUTH_LOGIN_REDIRECT_PATH}`,
+      );
     }
   },
 };

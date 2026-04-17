@@ -12,6 +12,10 @@ export default defineConfig(({ mode }) => {
   const coachingRemoteUrl =
     env.VITE_COACHING_REMOTE_URL ||
     "https://promentor-coaching.vercel.app/assets/remoteEntry.js";
+  const apiTarget = (env.VITE_API_URL || "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
 
   return {
     optimizeDeps: {
@@ -32,7 +36,9 @@ export default defineConfig(({ mode }) => {
           "react",
           "react-dom",
           "react-router-dom",
+          "@tanstack/react-query",
           "@promentorapp/ui-kit",
+          "react-toastify",
         ],
       }),
     ],
@@ -45,6 +51,11 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       cors: true,
+      proxy: {
+        "/auth": { target: apiTarget, changeOrigin: true },
+        "/users": { target: apiTarget, changeOrigin: true },
+        "/rooms": { target: apiTarget, changeOrigin: true },
+      },
     },
     preview: {
       port: 5173,
