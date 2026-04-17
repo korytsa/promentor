@@ -28,12 +28,6 @@ declare module "chatApp/ChatCreateGroupPage" {
   export default ChatCreateGroupPage;
 }
 
-declare module "chatApp/ChatProfilePage" {
-  import type { ComponentType } from "react";
-  const ChatProfilePage: ComponentType;
-  export default ChatProfilePage;
-}
-
 declare module "chatApp/ChatSidebar" {
   import type { ComponentType } from "react";
   const ChatSidebar: ComponentType;

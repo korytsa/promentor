@@ -21,25 +21,17 @@ import {
   hashRefreshToken,
   setAuthCookies,
 } from "./utils/auth-cookies.util";
+import {
+  toUserResponse,
+  USER_RESPONSE_SELECT,
+  type UserResponseRecord,
+} from "../users/types/user-response.type";
 
 const BCRYPT_SALT_ROUNDS = 12;
-const SESSION_USER_SELECT = {
-  id: true,
-  fullName: true,
-  email: true,
-  role: true,
-  avatarUrl: true,
-  jobTitle: true,
-  about: true,
-} as const;
-
 const AUTH_USER_WITH_PASSWORD_SELECT = {
-  ...SESSION_USER_SELECT,
+  ...USER_RESPONSE_SELECT,
   passwordHash: true,
 } as const;
-type SessionUser = Prisma.UserGetPayload<{
-  select: typeof SESSION_USER_SELECT;
-}>;
 type AuthUserWithPassword = Prisma.UserGetPayload<{
   select: typeof AUTH_USER_WITH_PASSWORD_SELECT;
 }>;
@@ -151,7 +143,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(rawRefresh);
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
-      include: { user: { select: SESSION_USER_SELECT } },
+      include: { user: { select: USER_RESPONSE_SELECT } },
     });
 
     if (!record || record.expiresAt < new Date()) {
@@ -176,7 +168,7 @@ export class AuthService {
   async getCurrentUser(userId: string): Promise<AuthUserResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: SESSION_USER_SELECT,
+      select: USER_RESPONSE_SELECT,
     });
 
     if (!user) {
@@ -230,15 +222,7 @@ export class AuthService {
     return hash(randomBytes(48).toString("hex"), BCRYPT_SALT_ROUNDS);
   }
 
-  private mapUser(user: SessionUser): AuthUserResponse {
-    return {
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      avatarUrl: user.avatarUrl,
-      jobTitle: user.jobTitle,
-      about: user.about,
-    };
+  private mapUser(user: UserResponseRecord): AuthUserResponse {
+    return toUserResponse(user);
   }
 }

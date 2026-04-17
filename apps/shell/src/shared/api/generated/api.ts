@@ -53,12 +53,16 @@ export interface AuthUserResponseDto {
 }
 
 export interface AuthSessionResponseDto {
+  message: string;
   user: AuthUserResponseDto;
 }
 
-export interface LogoutResponseDto {
+export interface OkResponseDto {
   ok: boolean;
+  message: string;
 }
+
+export type LogoutResponseDto = OkResponseDto;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -328,7 +332,7 @@ export const useAuthRefresh = <TError = unknown, TContext = unknown>(
 };
 
 export type authLogoutResponse200 = {
-  data: LogoutResponseDto;
+  data: OkResponseDto;
   status: 200;
 };
 
