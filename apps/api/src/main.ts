@@ -8,7 +8,9 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   runPrismaMigrateDeployIfProduction();
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false,
+  });
 
   applyTrustProxy(app);
   applyHttpAppSetup(app);

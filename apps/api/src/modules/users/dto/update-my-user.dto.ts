@@ -1,11 +1,6 @@
 import { Transform } from "class-transformer";
-import {
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  MinLength,
-} from "class-validator";
+import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDeviceAvatarDataUrl } from "./validators/avatar-url.validator";
 
 function trimString(value: unknown): unknown {
   return typeof value === "string" ? value.trim() : value;
@@ -30,8 +25,8 @@ export class UpdateMyUserDto {
 
   @IsOptional()
   @Transform(({ value }) => trimOrNull(value))
-  @IsUrl({ require_protocol: true })
-  @MaxLength(2048)
+  @IsDeviceAvatarDataUrl()
+  @MaxLength(5_000_000)
   avatarUrl?: string | null;
 
   @IsOptional()

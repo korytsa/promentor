@@ -34,7 +34,9 @@ describe("Users search (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    app = moduleFixture.createNestApplication<NestExpressApplication>({
+      bodyParser: false,
+    });
     applyTrustProxy(app);
     applyHttpAppSetup(app);
 
@@ -130,7 +132,9 @@ describe("GET /users pagination (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    app = moduleFixture.createNestApplication<NestExpressApplication>({
+      bodyParser: false,
+    });
     applyTrustProxy(app);
     applyHttpAppSetup(app);
 
@@ -190,7 +194,9 @@ describe("Users me endpoints (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    app = moduleFixture.createNestApplication<NestExpressApplication>({
+      bodyParser: false,
+    });
     applyTrustProxy(app);
     applyHttpAppSetup(app);
 
@@ -227,7 +233,7 @@ describe("Users me endpoints (e2e)", () => {
     );
     expect(res.body.errors).toEqual([
       "fullName must be longer than or equal to 3 characters",
-      "avatarUrl must be a URL address",
+      "avatarUrl must be a PNG, JPEG, GIF, or WebP data URL from an uploaded image",
     ]);
   });
 
@@ -316,7 +322,9 @@ describe("GET /users/search throttling (e2e)", () => {
       .useValue(fakePrisma)
       .compile();
 
-    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    app = moduleFixture.createNestApplication<NestExpressApplication>({
+      bodyParser: false,
+    });
     applyTrustProxy(app);
     applyHttpAppSetup(app);
 
