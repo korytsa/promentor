@@ -124,8 +124,8 @@ export const authBridge: AuthBridge = {
   },
   logout: async () => {
     try {
+      await authLogout().catch(() => undefined);
       if (queryClientRef) {
-        await authLogout().catch(() => undefined);
         queryClientRef.setQueryData(authQueryKeys.session(), null);
       }
     } finally {

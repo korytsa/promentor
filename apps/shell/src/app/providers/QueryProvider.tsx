@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/shared/api/getErrorMessage";
 
 const ERROR_TOAST_FALLBACK = "Something went wrong. Please try again." as const;
 
+/** Error toasts are opt-in: set `meta.notifyErrorToastId` on a query/mutation; no meta → no toast. */
 function readErrorToastId(
   meta: { notifyErrorToastId?: string } | undefined,
 ): string | undefined {

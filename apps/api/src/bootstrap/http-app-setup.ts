@@ -2,10 +2,10 @@ import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { json, urlencoded } from "express";
-
-const JSON_BODY_LIMIT = "6mb";
 import { ApiExceptionFilter } from "../common/http/api-exception.filter";
 import { createCorsOptions } from "../config/cors.config";
+
+const JSON_BODY_LIMIT = "6mb";
 
 export function applyTrustProxy(app: NestExpressApplication): void {
   const raw = process.env.TRUST_PROXY?.trim();

@@ -54,6 +54,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/auth": { target: apiTarget, changeOrigin: true },
         "/users": { target: apiTarget, changeOrigin: true },
+        "/rooms": { target: apiTarget, changeOrigin: true },
       },
     },
     preview: {
