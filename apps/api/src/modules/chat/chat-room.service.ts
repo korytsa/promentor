@@ -371,14 +371,14 @@ export class ChatRoomService {
     const rows = await this.prisma.$queryRaw<
       { room_id: string; c: number }[]
     >(Prisma.sql`
-      SELECT m.room_id::text AS room_id, COUNT(*)::int AS c
+      SELECT m."roomId"::text AS room_id, COUNT(*)::int AS c
       FROM chat_messages m
       INNER JOIN room_members rm
-        ON rm.room_id = m.room_id AND rm.user_id = ${viewerUserId}
-      WHERE m.room_id IN (${Prisma.join(roomIds)})
-        AND m.sender_id <> ${viewerUserId}
-        AND m.created_at > COALESCE(rm.last_read_at, rm.joined_at)
-      GROUP BY m.room_id
+        ON rm."roomId" = m."roomId" AND rm."userId" = ${viewerUserId}
+      WHERE m."roomId"::text IN (${Prisma.join(roomIds)})
+        AND m."senderId" <> ${viewerUserId}
+        AND m."createdAt" > COALESCE(rm."lastReadAt", rm."joinedAt")
+      GROUP BY m."roomId"
     `);
     return new Map(rows.map((r) => [r.room_id, r.c]));
   }
