@@ -14,6 +14,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { MentorGuard } from "../auth/guards/mentor.guard";
 import { JwtPayload } from "../auth/types/jwt-payload.type";
+import { CreateTeamJoinRequestDto } from "./dto/create-team-join-request.dto";
 import { CreateTeamDto } from "./dto/create-team.dto";
 import { InviteRegularUserDto } from "./dto/invite-regular-user.dto";
 import { UpdateTeamDto } from "./dto/update-team.dto";
@@ -22,6 +23,7 @@ import {
   CoachingTeamDetailResponse,
   CoachingTeamListItemResponse,
 } from "./types/coaching-team-response.type";
+import type { ExploreTeamRowResponse } from "./types/coaching-team-explore-response.type";
 import { UserResponse } from "../users/types/user-response.type";
 
 @UseGuards(JwtAuthGuard)
@@ -36,10 +38,26 @@ export class TeamsController {
     return this.teamsService.listTeams(user.sub, user.role);
   }
 
+  @Get("explore")
+  exploreTeams(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<ExploreTeamRowResponse[]> {
+    return this.teamsService.exploreTeams(user.sub, user.role);
+  }
+
   @Post("invite-user")
   @UseGuards(MentorGuard)
   inviteRegularUser(@Body() dto: InviteRegularUserDto): Promise<UserResponse> {
     return this.teamsService.inviteRegularUser(dto);
+  }
+
+  @Post(":teamId/join-requests")
+  createJoinRequest(
+    @CurrentUser() user: JwtPayload,
+    @Param("teamId") teamId: string,
+    @Body() dto: CreateTeamJoinRequestDto,
+  ) {
+    return this.teamsService.createJoinRequest(user.sub, teamId, dto);
   }
 
   @Post()

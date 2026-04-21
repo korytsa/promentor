@@ -75,8 +75,8 @@ export const DashboardPage = () => {
   const isMentor = user?.role === "MENTOR";
 
   return (
-    <section className="space-y-8 p-4 lg:p-0">
-      <div className="rounded-lg border border-[var(--pm-accent-cyan-border)] bg-[linear-gradient(180deg,rgba(8,145,178,0.14),rgba(30,64,175,0.08))] p-8 shadow-[0_10px_24px_rgba(15,23,42,0.22)] md:p-10">
+    <section className="space-y-6 p-4 lg:p-0">
+      <div className="rounded-lg border border-[var(--pm-accent-cyan-border)] bg-[linear-gradient(180deg,rgba(8,145,178,0.14),rgba(30,64,175,0.08))] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.22)]">
         <div className="relative z-10 max-w-4xl space-y-4">
           <Typography
             variantStyle="title"
@@ -108,11 +108,11 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {DASHBOARD_STATS.map((stat) => (
           <article
             key={stat.label}
-            className={`rounded-lg border bg-[rgba(6,30,46,0.45)] p-5 shadow-[0_8px_18px_rgba(15,23,42,0.18)] transition-colors duration-200 ${`${TONE_STYLES[stat.tone].border} ${TONE_STYLES[stat.tone].hover}`}`}
+            className={`rounded-lg border bg-[rgba(6,30,46,0.45)] p-6 shadow-[0_8px_18px_rgba(15,23,42,0.18)] transition-colors duration-200 ${`${TONE_STYLES[stat.tone].border} ${TONE_STYLES[stat.tone].hover}`}`}
           >
             <Typography
               component="h3"
@@ -136,7 +136,7 @@ export const DashboardPage = () => {
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <article
           className={`${SECTION_CARD_BASE} bg-[linear-gradient(180deg,rgba(8,145,178,0.16),rgba(15,23,42,0.34))]`}
         >
@@ -203,7 +203,7 @@ export const DashboardPage = () => {
         </article>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <FlowCard title="For Mentors" tone="cyan" items={MENTOR_FLOW} />
         <FlowCard title="For Regular Users" tone="blue" items={USER_FLOW} />
       </div>

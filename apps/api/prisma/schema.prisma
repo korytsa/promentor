@@ -22,6 +22,12 @@ enum CoachingTeamStatus {
   PENDING
 }
 
+enum CoachingTeamJoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id            String         @id @default(cuid())
   fullName      String
@@ -39,6 +45,7 @@ model User {
   sentMessages  ChatMessage[]
   coachingTeamsCreated    CoachingTeam[]       @relation("CoachingTeamsCreated")
   coachingTeamMemberships CoachingTeamMember[] @relation("CoachingTeamMemberships")
+  coachingTeamJoinRequests CoachingTeamJoinRequest[] @relation("CoachingTeamJoinRequests")
 }
 
 model CoachingTeam {
@@ -48,11 +55,29 @@ model CoachingTeam {
   createdById String
   createdBy   User               @relation("CoachingTeamsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   members     CoachingTeamMember[]
+  joinRequests CoachingTeamJoinRequest[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
   @@index([createdById])
   @@map("coaching_teams")
+}
+
+model CoachingTeamJoinRequest {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        CoachingTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  requesterId String
+  requester   User     @relation("CoachingTeamJoinRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  message     String?  @db.Text
+  status      CoachingTeamJoinRequestStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([teamId, requesterId])
+  @@index([teamId, status])
+  @@index([requesterId])
+  @@map("coaching_team_join_requests")
 }
 
 model CoachingTeamMember {
