@@ -5,6 +5,7 @@ import { throttlerOptionsFromEnv } from "./config/throttle.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
+import { TeamsModule } from "./modules/teams/teams.module";
 import { UsersModule } from "./modules/users/users.module";
 
 @Module({
@@ -16,6 +17,7 @@ import { UsersModule } from "./modules/users/users.module";
     AuthModule,
     ChatModule,
     UsersModule,
+    TeamsModule,
   ],
   controllers: [AppController],
   providers: [],

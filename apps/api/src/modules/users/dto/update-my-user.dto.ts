@@ -1,7 +1,7 @@
 import { Transform } from "class-transformer";
 import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import {
-  IsDeviceAvatarDataUrl,
+  IsValidAvatarUrl,
   MAX_AVATAR_VALUE_LENGTH,
 } from "./validators/avatar-url.validator";
 
@@ -28,7 +28,7 @@ export class UpdateMyUserDto {
 
   @IsOptional()
   @Transform(({ value }) => trimOrNull(value))
-  @IsDeviceAvatarDataUrl()
+  @IsValidAvatarUrl()
   @MaxLength(MAX_AVATAR_VALUE_LENGTH)
   avatarUrl?: string | null;
 

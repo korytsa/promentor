@@ -1,5 +1,8 @@
 import { describe, expect, it } from "@jest/globals";
-import { isDeviceAvatarDataUrl } from "./avatar-url.validator";
+import {
+  isDeviceAvatarDataUrl,
+  isValidAvatarUrl,
+} from "./avatar-url.validator";
 
 const DATA_PNG_PREFIX = "data:image/png;base64,";
 
@@ -12,6 +15,26 @@ function coreBase64Body(length: number): string {
 function dataUrlWithPayloadLength(payloadLength: number): string {
   return DATA_PNG_PREFIX + coreBase64Body(payloadLength);
 }
+
+describe("isValidAvatarUrl — http(s) image links", () => {
+  it("accepts https URLs ending in .jpg", () => {
+    expect(isValidAvatarUrl("https://example.com/avatar.jpg")).toBe(true);
+  });
+
+  it("accepts https URLs ending in .jpeg", () => {
+    expect(isValidAvatarUrl("https://cdn.example.org/path/photo.jpeg")).toBe(
+      true,
+    );
+  });
+
+  it("rejects localhost image URLs", () => {
+    expect(isValidAvatarUrl("http://127.0.0.1/a.jpg")).toBe(false);
+  });
+
+  it("rejects non-image paths", () => {
+    expect(isValidAvatarUrl("https://example.com/page.html")).toBe(false);
+  });
+});
 
 describe("isDeviceAvatarDataUrl — large payload / sampling branch", () => {
   it("uses full scan at exactly FULL_BASE64_PAYLOAD_SCAN_BYTES", () => {

@@ -99,6 +99,82 @@ export function isDeviceAvatarDataUrl(value: unknown): boolean {
   return isDataImageBase64(value);
 }
 
+const HTTPS_IMAGE_PATH = /\.(png|jpe?g|gif|webp)(\?[^#]*)?(#.*)?$/i;
+
+function isBlockedAvatarHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h === "::1" ||
+    h === "0.0.0.0"
+  ) {
+    return true;
+  }
+  if (h.endsWith(".localhost")) {
+    return true;
+  }
+  if (h.startsWith("192.168.")) {
+    return true;
+  }
+  if (h.startsWith("10.")) {
+    return true;
+  }
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h)) {
+    return true;
+  }
+  return false;
+}
+
+function isHttpOrHttpsImageUrl(value: string): boolean {
+  if (value.length > MAX_AVATAR_VALUE_LENGTH) {
+    return false;
+  }
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    if (isBlockedAvatarHost(parsed.hostname)) {
+      return false;
+    }
+    return HTTPS_IMAGE_PATH.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+export function isValidAvatarUrl(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+  if (typeof value !== "string") {
+    return false;
+  }
+  if (value.length > MAX_AVATAR_VALUE_LENGTH) {
+    return false;
+  }
+  if (isDeviceAvatarDataUrl(value)) {
+    return true;
+  }
+  return isHttpOrHttpsImageUrl(value);
+}
+
+export function IsValidAvatarUrl(validationOptions?: ValidationOptions) {
+  return ValidateBy(
+    {
+      name: "isValidAvatarUrl",
+      constraints: [],
+      validator: {
+        validate: (v: unknown): boolean => isValidAvatarUrl(v),
+        defaultMessage: () =>
+          "avatarUrl must be a PNG, JPEG, JPG, GIF, or WebP image (data URL or http(s) link to such a file)",
+      },
+    },
+    validationOptions,
+  );
+}
+
 export function IsDeviceAvatarDataUrl(validationOptions?: ValidationOptions) {
   return ValidateBy(
     {
@@ -107,7 +183,7 @@ export function IsDeviceAvatarDataUrl(validationOptions?: ValidationOptions) {
       validator: {
         validate: (v: unknown): boolean => isDeviceAvatarDataUrl(v),
         defaultMessage: () =>
-          "avatarUrl must be a PNG, JPEG, GIF, or WebP data URL from an uploaded image",
+          "avatarUrl must be a PNG, JPEG, JPG, GIF, or WebP data URL from an uploaded image",
       },
     },
     validationOptions,

@@ -17,6 +17,11 @@ enum ChatRoomType {
   GROUP   @map("group")
 }
 
+enum CoachingTeamStatus {
+  ACTIVE
+  PENDING
+}
+
 model User {
   id            String         @id @default(cuid())
   fullName      String
@@ -32,6 +37,34 @@ model User {
   createdRooms  ChatRoom[]     @relation("RoomCreator")
   roomMembers   RoomMember[]
   sentMessages  ChatMessage[]
+  coachingTeamsCreated    CoachingTeam[]       @relation("CoachingTeamsCreated")
+  coachingTeamMemberships CoachingTeamMember[] @relation("CoachingTeamMemberships")
+}
+
+model CoachingTeam {
+  id          String             @id @default(cuid())
+  name        String
+  status      CoachingTeamStatus @default(ACTIVE)
+  createdById String
+  createdBy   User               @relation("CoachingTeamsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  members     CoachingTeamMember[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([createdById])
+  @@map("coaching_teams")
+}
+
+model CoachingTeamMember {
+  teamId   String
+  userId   String
+  joinedAt DateTime     @default(now())
+  team     CoachingTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User         @relation("CoachingTeamMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@map("coaching_team_members")
 }
 
 model RefreshToken {
