@@ -7,7 +7,6 @@ import {
   RequestsPage,
   SuggestionPage,
   TeamsPage,
-  WorkoutPlansPage,
 } from "../remotes/coachingRemotes";
 import {
   ChatConversationPage,
@@ -52,12 +51,6 @@ export const remoteRoutes: RemoteRouteConfig[] = [
     title: "Boards",
     loadingText: "Loading boards...",
     element: <BoardsPage />,
-  },
-  {
-    path: "/workout-plans",
-    title: "Workout Plans",
-    loadingText: "Loading workout plans...",
-    element: <WorkoutPlansPage />,
   },
   {
     path: "/requests/:direction",
