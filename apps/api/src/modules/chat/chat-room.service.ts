@@ -256,12 +256,7 @@ export class ChatRoomService {
         privatePairKey!,
       );
       if (existingPrivate) {
-        this.chatRealtime.notifyRoomsChanged(
-          participants,
-          "room_updated",
-          existingPrivate.id,
-          existingPrivate.updatedAt,
-        );
+        this.notifyExistingPrivateRoom(participants, existingPrivate);
         return existingPrivate;
       }
     }
@@ -321,12 +316,7 @@ export class ChatRoomService {
           privatePairKey!,
         );
         if (existingPrivate) {
-          this.chatRealtime.notifyRoomsChanged(
-            participants,
-            "room_updated",
-            existingPrivate.id,
-            existingPrivate.updatedAt,
-          );
+          this.notifyExistingPrivateRoom(participants, existingPrivate);
           return existingPrivate;
         }
       }
@@ -365,6 +355,18 @@ export class ChatRoomService {
     }
 
     throw new ForbiddenException("You do not have access to this room");
+  }
+
+  private notifyExistingPrivateRoom(
+    participants: string[],
+    room: ChatRoomResponse,
+  ): void {
+    this.chatRealtime.notifyRoomsChanged(
+      participants,
+      "room_updated",
+      room.id,
+      room.updatedAt,
+    );
   }
 
   private async findPrivateRoomByPairKey(

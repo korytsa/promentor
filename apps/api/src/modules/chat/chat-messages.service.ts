@@ -108,12 +108,19 @@ export class ChatMessagesService {
         },
         data: { lastReadAt: messageRow.createdAt },
       });
-      return { messageRow, roomUpdatedAt: room.updatedAt };
+      const memberRows = await tx.roomMember.findMany({
+        where: { roomId },
+        select: { userId: true },
+      });
+      return {
+        messageRow,
+        roomUpdatedAt: room.updatedAt,
+        memberIds: memberRows.map((r) => r.userId),
+      };
     });
 
-    const memberIds = await this.rooms.getRoomMemberUserIds(roomId);
     this.chatRealtime.notifyRoomsChanged(
-      memberIds,
+      created.memberIds,
       "new_message",
       roomId,
       created.roomUpdatedAt,
