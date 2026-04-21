@@ -13,7 +13,7 @@ import {
 } from "./chat.constants";
 import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
-import { SendMessageDto } from "./dto/send-message.dto";
+import { SendMessagePayload } from "./dto/send-message.dto";
 import {
   ChatMessageResponse,
   ChatMessagesPageResponse,
@@ -69,13 +69,15 @@ export class ChatMessagesService {
   async sendMessage(
     roomId: string,
     userId: string,
-    dto: SendMessageDto,
+    dto: SendMessagePayload,
   ): Promise<ChatMessageResponse> {
     await this.rooms.assertCanAccessRoom(roomId, userId);
     const message = dto.message.trim();
     if (message.length === 0) {
       throw new BadRequestException("Message cannot be empty");
     }
+
+    const correlationId = parseClientMessageIdForSend(dto.clientMessageId);
 
     const created = await this.prisma.$transaction(async (tx) => {
       const messageRow = await tx.chatMessage.create({
@@ -127,7 +129,6 @@ export class ChatMessagesService {
     );
 
     const base = this.mapMessageToResponse(created.messageRow, userId);
-    const correlationId = parseClientMessageIdForSend(dto.clientMessageId);
     if (correlationId === undefined) {
       return base;
     }

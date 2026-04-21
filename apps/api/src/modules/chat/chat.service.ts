@@ -4,7 +4,7 @@ import { ChatRoomService } from "./chat-room.service";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
-import { SendMessageDto } from "./dto/send-message.dto";
+import { SendMessagePayload } from "./dto/send-message.dto";
 import {
   ChatMessageResponse,
   ChatMessagesPageResponse,
@@ -51,7 +51,7 @@ export class ChatService {
   sendMessage(
     roomId: string,
     userId: string,
-    dto: SendMessageDto,
+    dto: SendMessagePayload,
   ): Promise<ChatMessageResponse> {
     return this.messages.sendMessage(roomId, userId, dto);
   }

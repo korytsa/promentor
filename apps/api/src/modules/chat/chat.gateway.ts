@@ -25,8 +25,11 @@ import {
 import { ChatPresenceService } from "./chat-presence.service";
 import { ChatSocketThrottleService } from "./chat-socket-throttle.service";
 import { ChatService } from "./chat.service";
-import { chatMessageToBroadcastPayload } from "./types/chat-response.type";
-import { parseClientMessageIdForSend } from "./utils/client-message-id.util";
+import {
+  chatMessageToBroadcastPayload,
+  chatMessageToSenderNewMessagePayload,
+} from "./types/chat-response.type";
+import { SendMessagePayload } from "./dto/send-message.dto";
 
 type ChatSocket = Socket & {
   data: { userId?: string; joinedPresenceRooms?: Set<string> };
@@ -188,18 +191,25 @@ export class ChatGateway
         return;
       }
 
-      const clientMessageId = parseClientMessageIdForSend(
-        payload.clientMessageId,
-      );
-
-      const created = await this.chatService.sendMessage(roomId, userId, {
+      const wsDto: SendMessagePayload = {
         message: messageText,
-        ...(clientMessageId !== undefined ? { clientMessageId } : {}),
-      });
+        clientMessageId: payload.clientMessageId,
+      };
 
-      this.server
-        .to(roomId)
-        .emit("chat:newMessage", chatMessageToBroadcastPayload(created));
+      let created;
+      try {
+        created = await this.chatService.sendMessage(roomId, userId, wsDto);
+      } catch (error) {
+        this.socketThrottle.undoLastMessageReservation(userId);
+        throw error;
+      }
+
+      const toOthers = chatMessageToBroadcastPayload(created);
+      client.to(roomId).emit("chat:newMessage", toOthers);
+      client.emit(
+        "chat:newMessage",
+        chatMessageToSenderNewMessagePayload(created),
+      );
     });
   }
 

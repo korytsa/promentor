@@ -10,6 +10,7 @@ import {
   applyTrustProxy,
 } from "../src/bootstrap/http-app-setup";
 import { AppModule } from "../src/app.module";
+import { CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH } from "../src/modules/chat/chat.constants";
 import { PrismaService } from "../src/modules/prisma/prisma.service";
 import {
   FakePrismaService,
@@ -104,6 +105,33 @@ describe("Chat backend (e2e)", () => {
       isOwn: true,
     });
     expect(fakePrisma.messages).toHaveLength(1);
+  });
+
+  it("returns 201 with clientMessageId when provided via REST", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/rooms/5db0da20-b916-4c44-8ad6-b4bea76f0ea5/messages")
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
+      .send({ message: "With correlation id", clientMessageId: "rest-corr-1" })
+      .expect(201);
+
+    expect(response.body.clientMessageId).toBe("rest-corr-1");
+  });
+
+  it("returns 400 when clientMessageId is not a string (REST)", async () => {
+    await request(app.getHttpServer())
+      .post("/rooms/5db0da20-b916-4c44-8ad6-b4bea76f0ea5/messages")
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
+      .send({ message: "x", clientMessageId: 123 })
+      .expect(400);
+  });
+
+  it("returns 400 when clientMessageId exceeds max length (REST)", async () => {
+    const tooLong = "x".repeat(CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH + 1);
+    await request(app.getHttpServer())
+      .post("/rooms/5db0da20-b916-4c44-8ad6-b4bea76f0ea5/messages")
+      .set("Cookie", [`access_token=${accessTokenUser2}`])
+      .send({ message: "x", clientMessageId: tooLong })
+      .expect(400);
   });
 
   it("returns 403 when non-member tries to send a message", async () => {
@@ -248,6 +276,77 @@ describe("Chat backend (e2e)", () => {
     } finally {
       socketUser1.close();
       socketUser2.close();
+    }
+  });
+
+  it("sends clientMessageId only to sender on chat:newMessage (not to other room members)", async () => {
+    const socketUser1 = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser1 },
+    });
+    const socketUser2 = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser2 },
+    });
+
+    try {
+      await Promise.all([
+        waitForEvent<void>(socketUser1, "connect"),
+        waitForEvent<void>(socketUser2, "connect"),
+      ]);
+
+      const roomId = "5db0da20-b916-4c44-8ad6-b4bea76f0ea5";
+      socketUser1.emit("chat:joinRoom", { roomId });
+      socketUser2.emit("chat:joinRoom", { roomId });
+      await sleep(50);
+
+      const pSender = waitForEvent<{
+        clientMessageId?: string;
+        message: string;
+      }>(socketUser1, "chat:newMessage");
+      const pOther = waitForEvent<{ clientMessageId?: string }>(
+        socketUser2,
+        "chat:newMessage",
+      );
+
+      socketUser1.emit("chat:sendMessage", {
+        roomId,
+        message: "With WS correlation",
+        clientMessageId: "ws-opt-1",
+      });
+
+      const [fromSender, fromOther] = await Promise.all([pSender, pOther]);
+
+      expect(fromSender.clientMessageId).toBe("ws-opt-1");
+      expect(fromOther.clientMessageId).toBeUndefined();
+    } finally {
+      socketUser1.close();
+      socketUser2.close();
+    }
+  });
+
+  it("emits chat:error when WS clientMessageId is not a string", async () => {
+    const roomId = "5db0da20-b916-4c44-8ad6-b4bea76f0ea5";
+    const socket = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser2 },
+    });
+    try {
+      await waitForEvent<void>(socket, "connect");
+      socket.emit("chat:joinRoom", { roomId });
+      await sleep(50);
+
+      const err = waitForEvent<{ message: string }>(socket, "chat:error");
+      socket.emit("chat:sendMessage", {
+        roomId,
+        message: "valid body",
+        clientMessageId: 999,
+      } as never);
+
+      const payload = await err;
+      expect(payload.message).toMatch(/clientMessageId must be a string/i);
+    } finally {
+      socket.close();
     }
   });
 

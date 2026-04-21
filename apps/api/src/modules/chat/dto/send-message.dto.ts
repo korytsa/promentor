@@ -15,3 +15,7 @@ export class SendMessageDto {
   @MaxLength(CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH)
   clientMessageId?: string;
 }
+
+export type SendMessagePayload = Omit<SendMessageDto, "clientMessageId"> & {
+  clientMessageId?: unknown;
+};
