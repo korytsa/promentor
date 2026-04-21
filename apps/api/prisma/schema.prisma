@@ -28,6 +28,18 @@ enum CoachingTeamJoinRequestStatus {
   REJECTED
 }
 
+enum MentorshipRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum MentorAvailabilityTier {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model User {
   id            String         @id @default(cuid())
   fullName      String
@@ -46,6 +58,10 @@ model User {
   coachingTeamsCreated    CoachingTeam[]       @relation("CoachingTeamsCreated")
   coachingTeamMemberships CoachingTeamMember[] @relation("CoachingTeamMemberships")
   coachingTeamJoinRequests CoachingTeamJoinRequest[] @relation("CoachingTeamJoinRequests")
+  mentorAvailability        MentorAvailabilityTier?
+  mentorWeeklySessions      Int                    @default(0)
+  mentorshipRequestsAsMentor MentorshipRequest[] @relation("MentorshipMentor")
+  mentorshipRequestsAsMentee MentorshipRequest[] @relation("MentorshipMentee")
 }
 
 model CoachingTeam {
@@ -78,6 +94,23 @@ model CoachingTeamJoinRequest {
   @@index([teamId, status])
   @@index([requesterId])
   @@map("coaching_team_join_requests")
+}
+
+model MentorshipRequest {
+  id        String                  @id @default(cuid())
+  mentorId  String
+  mentor    User                    @relation("MentorshipMentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId  String
+  mentee    User                    @relation("MentorshipMentee", fields: [menteeId], references: [id], onDelete: Cascade)
+  message   String?                 @db.Text
+  status    MentorshipRequestStatus @default(PENDING)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@unique([mentorId, menteeId])
+  @@index([mentorId, status])
+  @@index([menteeId])
+  @@map("mentorship_requests")
 }
 
 model CoachingTeamMember {
