@@ -652,7 +652,12 @@
           "message": { "type": "string" },
           "createdAt": { "type": "string", "format": "date-time" },
           "sender": { "$ref": "#/components/schemas/ChatMessageSenderPublic" },
-          "isOwn": { "type": "boolean" }
+          "isOwn": { "type": "boolean" },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Echoed when provided on send (optimistic UI correlation)"
+          }
         },
         "required": [
           "id",
@@ -757,7 +762,12 @@
       "SendMessageDto": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "minLength": 1, "maxLength": 10000 }
+          "message": { "type": "string", "minLength": 1, "maxLength": 10000 },
+          "clientMessageId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Optional client correlation id for optimistic UI (not stored server-side)"
+          }
         },
         "required": ["message"]
       },

@@ -1,6 +1,9 @@
 /** Aligned with DTO validation and DB text limits for chat bodies. */
 export const CHAT_MESSAGE_MAX_LENGTH = 10_000;
 
+/** Client correlation id for optimistic UI (not stored in DB). */
+export const CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH = 128;
+
 const ROOM_ID_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

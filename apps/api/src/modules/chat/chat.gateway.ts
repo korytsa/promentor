@@ -20,13 +20,18 @@ import { ChatPresenceService } from "./chat-presence.service";
 import { ChatSocketThrottleService } from "./chat-socket-throttle.service";
 import { ChatService } from "./chat.service";
 import { chatMessageToBroadcastPayload } from "./types/chat-response.type";
+import { parseClientMessageIdForSend } from "./utils/client-message-id.util";
 
 type ChatSocket = Socket & {
   data: { userId?: string; joinedPresenceRooms?: Set<string> };
 };
 
 type RoomEventPayload = { roomId: string };
-type SendMessageEventPayload = { roomId: string; message?: unknown };
+type SendMessageEventPayload = {
+  roomId: string;
+  message?: unknown;
+  clientMessageId?: unknown;
+};
 type TypingEventPayload = { roomId: string; typing?: boolean };
 
 const CHAT_ERROR_FALLBACK = "Chat event failed";
@@ -169,8 +174,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
+      const clientMessageId = parseClientMessageIdForSend(
+        payload.clientMessageId,
+      );
+
       const created = await this.chatService.sendMessage(roomId, userId, {
         message: messageText,
+        ...(clientMessageId !== undefined ? { clientMessageId } : {}),
       });
 
       this.server

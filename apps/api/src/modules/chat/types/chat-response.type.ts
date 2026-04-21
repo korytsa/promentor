@@ -35,6 +35,8 @@ export type ChatMessageResponse = {
   createdAt: Date;
   sender: ChatMessageSenderPublic;
   isOwn: boolean;
+  /** Echoed from send request for optimistic UI correlation (WS / optional on REST). */
+  clientMessageId?: string;
 };
 
 export type ChatMessageBroadcastPayload = Omit<ChatMessageResponse, "isOwn">;
@@ -49,6 +51,9 @@ export function chatMessageToBroadcastPayload(
     message: m.message,
     createdAt: m.createdAt,
     sender: m.sender,
+    ...(m.clientMessageId !== undefined
+      ? { clientMessageId: m.clientMessageId }
+      : {}),
   };
 }
 

@@ -17,6 +17,7 @@ import {
   ChatMessageResponse,
   ChatMessagesPageResponse,
 } from "./types/chat-response.type";
+import { parseClientMessageIdForSend } from "./utils/client-message-id.util";
 
 @Injectable()
 export class ChatMessagesService {
@@ -108,7 +109,12 @@ export class ChatMessagesService {
       return messageRow;
     });
 
-    return this.mapMessageToResponse(created, userId);
+    const base = this.mapMessageToResponse(created, userId);
+    const correlationId = parseClientMessageIdForSend(dto.clientMessageId);
+    if (correlationId === undefined) {
+      return base;
+    }
+    return { ...base, clientMessageId: correlationId };
   }
 
   async markRoomRead(
