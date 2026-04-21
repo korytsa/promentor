@@ -2,9 +2,6 @@ import { lazy } from "react";
 
 export const TeamsPage = lazy(() => import("coachingApp/TeamsPage"));
 export const BoardsPage = lazy(() => import("coachingApp/BoardsPage"));
-export const WorkoutPlansPage = lazy(
-  () => import("coachingApp/WorkoutPlansPage"),
-);
 export const ExploreTeamsPage = lazy(
   () => import("coachingApp/ExploreTeamsPage"),
 );

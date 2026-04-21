@@ -46,12 +46,6 @@ declare module "coachingApp/BoardsPage" {
   export default BoardsPage;
 }
 
-declare module "coachingApp/WorkoutPlansPage" {
-  import type { ComponentType } from "react";
-  const WorkoutPlansPage: ComponentType;
-  export default WorkoutPlansPage;
-}
-
 declare module "coachingApp/RequestsPage" {
   import type { ComponentType } from "react";
   const RequestsPage: ComponentType;
