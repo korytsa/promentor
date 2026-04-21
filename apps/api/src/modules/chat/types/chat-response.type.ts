@@ -35,7 +35,6 @@ export type ChatMessageResponse = {
   createdAt: Date;
   sender: ChatMessageSenderPublic;
   isOwn: boolean;
-  /** Echoed from send request for optimistic UI correlation (WS / optional on REST). */
   clientMessageId?: string;
 };
 

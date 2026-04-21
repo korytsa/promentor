@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+import { ChatRealtimePublisher } from "./chat-realtime.publisher";
 import { ChatRoomService } from "./chat-room.service";
 import {
   DEFAULT_MESSAGES_LIMIT,
@@ -24,6 +25,7 @@ export class ChatMessagesService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly rooms: ChatRoomService,
+    private readonly chatRealtime: ChatRealtimePublisher,
   ) {}
 
   async listMessages(
@@ -93,12 +95,12 @@ export class ChatMessagesService {
           },
         },
       });
-      await tx.chatRoom.update({
+      const room = await tx.chatRoom.update({
         where: { id: roomId },
         data: {
           updatedAt: new Date(),
         },
-        select: { id: true },
+        select: { updatedAt: true },
       });
       await tx.roomMember.update({
         where: {
@@ -106,10 +108,18 @@ export class ChatMessagesService {
         },
         data: { lastReadAt: messageRow.createdAt },
       });
-      return messageRow;
+      return { messageRow, roomUpdatedAt: room.updatedAt };
     });
 
-    const base = this.mapMessageToResponse(created, userId);
+    const memberIds = await this.rooms.getRoomMemberUserIds(roomId);
+    this.chatRealtime.notifyRoomsChanged(
+      memberIds,
+      "new_message",
+      roomId,
+      created.roomUpdatedAt,
+    );
+
+    const base = this.mapMessageToResponse(created.messageRow, userId);
     const correlationId = parseClientMessageIdForSend(dto.clientMessageId);
     if (correlationId === undefined) {
       return base;

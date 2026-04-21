@@ -5,6 +5,7 @@ import { ChatGateway } from "./chat.gateway";
 import { ChatMessagesService } from "./chat-messages.service";
 import { ChatPresenceService } from "./chat-presence.service";
 import { ChatRoomService } from "./chat-room.service";
+import { ChatRealtimePublisher } from "./chat-realtime.publisher";
 import { ChatSocketThrottleService } from "./chat-socket-throttle.service";
 import { ChatService } from "./chat.service";
 
@@ -17,6 +18,7 @@ import { ChatService } from "./chat.service";
     ChatService,
     ChatPresenceService,
     ChatSocketThrottleService,
+    ChatRealtimePublisher,
     ChatGateway,
   ],
   exports: [ChatService],

@@ -148,6 +148,61 @@ describe("Chat backend (e2e)", () => {
       .expect(400);
   });
 
+  it("emits rooms:changed to all members on new message (personal channel; no chat:joinRoom required)", async () => {
+    const socketUser1 = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser1 },
+    });
+    const socketUser2 = io(`${baseUrl}/chat`, {
+      transports: ["websocket"],
+      auth: { token: accessTokenUser2 },
+    });
+
+    try {
+      await Promise.all([
+        waitForEvent<void>(socketUser1, "connect"),
+        waitForEvent<void>(socketUser2, "connect"),
+      ]);
+
+      const roomId = "5db0da20-b916-4c44-8ad6-b4bea76f0ea5";
+      const p1 = waitForEvent<{
+        type: string;
+        reason: string;
+        roomId: string;
+        updatedAt: string;
+      }>(socketUser1, "rooms:changed");
+      const p2 = waitForEvent<{
+        type: string;
+        reason: string;
+        roomId: string;
+        updatedAt: string;
+      }>(socketUser2, "rooms:changed");
+
+      await request(app.getHttpServer())
+        .post(`/rooms/${roomId}/messages`)
+        .set("Cookie", [`access_token=${accessTokenUser1}`])
+        .send({ message: "rooms list invalidation" })
+        .expect(201);
+
+      const [a, b] = await Promise.all([p1, p2]);
+      expect(a).toMatchObject({
+        type: "rooms:changed",
+        reason: "new_message",
+        roomId,
+      });
+      expect(b).toMatchObject({
+        type: "rooms:changed",
+        reason: "new_message",
+        roomId,
+      });
+      expect(typeof a.updatedAt).toBe("string");
+      expect(typeof b.updatedAt).toBe("string");
+    } finally {
+      socketUser1.close();
+      socketUser2.close();
+    }
+  });
+
   it("broadcasts chat:newMessage via websocket for room members", async () => {
     const socketUser1 = io(`${baseUrl}/chat`, {
       transports: ["websocket"],

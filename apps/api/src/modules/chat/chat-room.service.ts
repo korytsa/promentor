@@ -11,6 +11,7 @@ import {
   ROOM_MEMBERS_WITH_USERS_INCLUDE,
 } from "./chat.constants";
 import { CreateRoomDto } from "./dto/create-room.dto";
+import { ChatRealtimePublisher } from "./chat-realtime.publisher";
 import {
   ChatLastMessageResponse,
   ChatRoomDetailResponse,
@@ -23,6 +24,7 @@ export class ChatRoomService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly presence: ChatPresenceService,
+    private readonly chatRealtime: ChatRealtimePublisher,
   ) {}
 
   async listRooms(userId: string): Promise<ChatRoomListItemResponse[]> {
@@ -177,8 +179,17 @@ export class ChatRoomService {
       throw new ForbiddenException("You are not a member of this room");
     }
 
+    const memberIdsBefore = await this.getRoomMemberUserIds(roomId);
+    const leftAt = new Date();
+
     if (room.type === ChatRoomType.PRIVATE) {
       await this.prisma.chatRoom.delete({ where: { id: roomId } });
+      this.chatRealtime.notifyRoomsChanged(
+        memberIdsBefore,
+        "left_room",
+        roomId,
+        leftAt,
+      );
       return;
     }
 
@@ -187,6 +198,15 @@ export class ChatRoomService {
         roomId_userId: { roomId, userId },
       },
     });
+
+    const remaining = memberIdsBefore.filter((id) => id !== userId);
+    this.chatRealtime.notifyRoomsChanged([userId], "left_room", roomId, leftAt);
+    this.chatRealtime.notifyRoomsChanged(
+      remaining,
+      "room_updated",
+      roomId,
+      leftAt,
+    );
   }
 
   async createRoom(
@@ -236,6 +256,12 @@ export class ChatRoomService {
         privatePairKey!,
       );
       if (existingPrivate) {
+        this.chatRealtime.notifyRoomsChanged(
+          participants,
+          "room_updated",
+          existingPrivate.id,
+          existingPrivate.updatedAt,
+        );
         return existingPrivate;
       }
     }
@@ -269,7 +295,7 @@ export class ChatRoomService {
         },
       });
 
-      return {
+      const response: ChatRoomResponse = {
         id: createdRoom.id,
         name: createdRoom.name,
         type: this.toApiRoomType(createdRoom.type),
@@ -278,6 +304,13 @@ export class ChatRoomService {
         updatedAt: createdRoom.updatedAt,
         membersCount: createdRoom._count.members,
       };
+      this.chatRealtime.notifyRoomsChanged(
+        participants,
+        "room_created",
+        createdRoom.id,
+        createdRoom.updatedAt,
+      );
+      return response;
     } catch (error) {
       if (
         roomType === ChatRoomType.PRIVATE &&
@@ -288,11 +321,25 @@ export class ChatRoomService {
           privatePairKey!,
         );
         if (existingPrivate) {
+          this.chatRealtime.notifyRoomsChanged(
+            participants,
+            "room_updated",
+            existingPrivate.id,
+            existingPrivate.updatedAt,
+          );
           return existingPrivate;
         }
       }
       throw error;
     }
+  }
+
+  async getRoomMemberUserIds(roomId: string): Promise<string[]> {
+    const rows = await this.prisma.roomMember.findMany({
+      where: { roomId },
+      select: { userId: true },
+    });
+    return rows.map((r) => r.userId);
   }
 
   async assertCanAccessRoom(roomId: string, userId: string): Promise<void> {

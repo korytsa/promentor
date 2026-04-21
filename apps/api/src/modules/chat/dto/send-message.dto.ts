@@ -10,7 +10,6 @@ export class SendMessageDto {
   @MaxLength(CHAT_MESSAGE_MAX_LENGTH)
   message!: string;
 
-  /** Correlation id from the client for optimistic updates (not persisted). */
   @IsOptional()
   @IsString()
   @MaxLength(CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH)

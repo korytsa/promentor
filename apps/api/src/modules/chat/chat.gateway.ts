@@ -4,6 +4,7 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -15,7 +16,12 @@ import { socketIoCors } from "../../config/cors.config";
 import { ACCESS_TOKEN_COOKIE } from "../auth/constants/auth-cookies.constants";
 import { getCookieFromHeader } from "../auth/utils/auth-cookies.util";
 import { JwtPayload } from "../auth/types/jwt-payload.type";
-import { CHAT_MESSAGE_MAX_LENGTH, isChatRoomIdParam } from "./chat.constants";
+import { ChatRealtimePublisher } from "./chat-realtime.publisher";
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  isChatRoomIdParam,
+  userSocketRoomId,
+} from "./chat.constants";
 import { ChatPresenceService } from "./chat-presence.service";
 import { ChatSocketThrottleService } from "./chat-socket-throttle.service";
 import { ChatService } from "./chat.service";
@@ -40,7 +46,9 @@ const CHAT_ERROR_FALLBACK = "Chat event failed";
   namespace: "/chat",
   cors: socketIoCors,
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
@@ -49,7 +57,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly presence: ChatPresenceService,
     private readonly socketThrottle: ChatSocketThrottleService,
     private readonly jwtService: JwtService,
+    private readonly chatRealtime: ChatRealtimePublisher,
   ) {}
+
+  afterInit(): void {
+    this.chatRealtime.registerServer(this.server);
+  }
 
   async handleConnection(client: ChatSocket): Promise<void> {
     try {
@@ -62,6 +75,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       client.data.userId = payload.sub;
+      await client.join(userSocketRoomId(payload.sub));
     } catch {
       this.emitError(client, "Invalid or expired token");
       client.disconnect(true);
