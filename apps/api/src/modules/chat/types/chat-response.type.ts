@@ -35,9 +35,13 @@ export type ChatMessageResponse = {
   createdAt: Date;
   sender: ChatMessageSenderPublic;
   isOwn: boolean;
+  clientMessageId?: string;
 };
 
-export type ChatMessageBroadcastPayload = Omit<ChatMessageResponse, "isOwn">;
+export type ChatMessageBroadcastPayload = Omit<
+  ChatMessageResponse,
+  "isOwn" | "clientMessageId"
+>;
 
 export function chatMessageToBroadcastPayload(
   m: ChatMessageResponse,
@@ -50,6 +54,16 @@ export function chatMessageToBroadcastPayload(
     createdAt: m.createdAt,
     sender: m.sender,
   };
+}
+
+export function chatMessageToSenderNewMessagePayload(
+  m: ChatMessageResponse,
+): ChatMessageBroadcastPayload & { clientMessageId?: string } {
+  const base = chatMessageToBroadcastPayload(m);
+  if (m.clientMessageId === undefined) {
+    return base;
+  }
+  return { ...base, clientMessageId: m.clientMessageId };
 }
 
 export type ChatMessagesPageResponse = {
