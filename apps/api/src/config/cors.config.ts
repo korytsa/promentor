@@ -1,16 +1,23 @@
 import type { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 
+const LOCAL_DEV_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:4174",
+  "http://localhost:4175",
+] as const;
+
 function getEffectiveCorsOrigins(): string[] {
   const configured =
     process.env.CORS_ORIGIN?.split(",")
       .map((s) => s.trim())
       .filter(Boolean) ?? [];
-  if (configured.length > 0) {
-    return configured;
+
+  if (process.env.NODE_ENV === "production") {
+    return configured.length > 0 ? configured : [];
   }
-  return process.env.NODE_ENV !== "production"
-    ? ["http://localhost:5173", "http://localhost:3000"]
-    : [];
+
+  return [...new Set([...configured, ...LOCAL_DEV_ORIGINS])];
 }
 
 export function isCorsOriginAllowed(origin: string | undefined): boolean {
