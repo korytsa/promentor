@@ -6,6 +6,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { MentorshipModule } from "./modules/mentorship/mentorship.module";
+import { MentorBroadcastModule } from "./modules/mentor-broadcast/mentor-broadcast.module";
 import { TeamsModule } from "./modules/teams/teams.module";
 import { UsersModule } from "./modules/users/users.module";
 
@@ -20,6 +21,7 @@ import { UsersModule } from "./modules/users/users.module";
     UsersModule,
     TeamsModule,
     MentorshipModule,
+    MentorBroadcastModule,
   ],
   controllers: [AppController],
   providers: [],

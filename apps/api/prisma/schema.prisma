@@ -34,6 +34,17 @@ enum MentorshipRequestStatus {
   REJECTED
 }
 
+enum MentorBroadcastScope {
+  TEAM
+  INTERN
+  BOARD
+}
+
+enum MentorBroadcastStatus {
+  DELIVERED
+  CANCELLED
+}
+
 enum MentorAvailabilityTier {
   HIGH
   MEDIUM
@@ -62,6 +73,8 @@ model User {
   mentorWeeklySessions      Int                    @default(0)
   mentorshipRequestsAsMentor MentorshipRequest[] @relation("MentorshipMentor")
   mentorshipRequestsAsMentee MentorshipRequest[] @relation("MentorshipMentee")
+  mentorBroadcastRequests      MentorBroadcastRequest[]
+  mentorBroadcastMenteeTargets MentorBroadcastRequest[]   @relation("MentorBroadcastMenteeTarget")
 }
 
 model CoachingTeam {
@@ -72,6 +85,7 @@ model CoachingTeam {
   createdBy   User               @relation("CoachingTeamsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   members     CoachingTeamMember[]
   joinRequests CoachingTeamJoinRequest[]
+  mentorBroadcastRequests MentorBroadcastRequest[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
@@ -111,6 +125,27 @@ model MentorshipRequest {
   @@index([mentorId, status])
   @@index([menteeId])
   @@map("mentorship_requests")
+}
+
+model MentorBroadcastRequest {
+  id          String   @id @default(cuid())
+  mentorId    String
+  mentor      User     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  scope       MentorBroadcastScope
+  teamId      String?
+  team        CoachingTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  menteeId    String?
+  mentee      User?     @relation("MentorBroadcastMenteeTarget", fields: [menteeId], references: [id], onDelete: SetNull)
+  targetLabel String
+  contextLine String?  @db.Text
+  body        String   @db.Text
+  status      MentorBroadcastStatus @default(DELIVERED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([mentorId, status, createdAt])
+  @@index([menteeId])
+  @@map("mentor_broadcast_requests")
 }
 
 model CoachingTeamMember {
