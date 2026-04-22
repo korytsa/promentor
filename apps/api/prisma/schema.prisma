@@ -51,6 +51,18 @@ enum MentorAvailabilityTier {
   LOW
 }
 
+enum SuggestionTargetScope {
+  TEAM
+  MENTOR
+  BOARD
+}
+
+enum SuggestionPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model User {
   id            String         @id @default(cuid())
   fullName      String
@@ -75,6 +87,10 @@ model User {
   mentorshipRequestsAsMentee MentorshipRequest[] @relation("MentorshipMentee")
   mentorBroadcastRequests      MentorBroadcastRequest[]
   mentorBroadcastMenteeTargets MentorBroadcastRequest[]   @relation("MentorBroadcastMenteeTarget")
+  userBoardsOwned            UserBoard[]          @relation("UserBoardsOwned")
+  userBoardMentorOf          UserBoard[]          @relation("UserBoardMentor")
+  userSuggestionsSent        UserSuggestion[]     @relation("UserSuggestionsSent")
+  userSuggestionsToMentor    UserSuggestion[]     @relation("SuggestionRecipientMentor")
 }
 
 model CoachingTeam {
@@ -86,6 +102,7 @@ model CoachingTeam {
   members     CoachingTeamMember[]
   joinRequests CoachingTeamJoinRequest[]
   mentorBroadcastRequests MentorBroadcastRequest[]
+  userSuggestions         UserSuggestion[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
@@ -146,6 +163,43 @@ model MentorBroadcastRequest {
   @@index([mentorId, status, createdAt])
   @@index([menteeId])
   @@map("mentor_broadcast_requests")
+}
+
+model UserBoard {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation("UserBoardsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  mentorId  String
+  mentor    User     @relation("UserBoardMentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  suggestions UserSuggestion[]
+  @@index([ownerId])
+  @@index([mentorId])
+  @@map("user_boards")
+}
+
+model UserSuggestion {
+  id                 String              @id @default(cuid())
+  senderId           String
+  sender             User                @relation("UserSuggestionsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  scope              SuggestionTargetScope
+  recipientMentorId  String
+  recipientMentor    User                @relation("SuggestionRecipientMentor", fields: [recipientMentorId], references: [id], onDelete: Cascade)
+  teamId             String?
+  team               CoachingTeam?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  boardId            String?
+  userBoard          UserBoard?         @relation(fields: [boardId], references: [id], onDelete: SetNull)
+  title              String
+  detail             String
+  priority           SuggestionPriority
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  @@index([senderId, createdAt])
+  @@index([recipientMentorId, createdAt])
+  @@index([boardId])
+  @@map("user_suggestions")
 }
 
 model CoachingTeamMember {
