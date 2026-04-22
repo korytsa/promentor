@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+import { ChatRealtimePublisher } from "./chat-realtime.publisher";
 import { ChatRoomService } from "./chat-room.service";
 import {
   DEFAULT_MESSAGES_LIMIT,
@@ -12,17 +13,19 @@ import {
 } from "./chat.constants";
 import { MarkRoomReadDto } from "./dto/mark-room-read.dto";
 import { ListRoomMessagesQueryDto } from "./dto/list-room-messages.query";
-import { SendMessageDto } from "./dto/send-message.dto";
+import { SendMessagePayload } from "./dto/send-message.dto";
 import {
   ChatMessageResponse,
   ChatMessagesPageResponse,
 } from "./types/chat-response.type";
+import { parseClientMessageIdForSend } from "./utils/client-message-id.util";
 
 @Injectable()
 export class ChatMessagesService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly rooms: ChatRoomService,
+    private readonly chatRealtime: ChatRealtimePublisher,
   ) {}
 
   async listMessages(
@@ -66,13 +69,15 @@ export class ChatMessagesService {
   async sendMessage(
     roomId: string,
     userId: string,
-    dto: SendMessageDto,
+    dto: SendMessagePayload,
   ): Promise<ChatMessageResponse> {
     await this.rooms.assertCanAccessRoom(roomId, userId);
     const message = dto.message.trim();
     if (message.length === 0) {
       throw new BadRequestException("Message cannot be empty");
     }
+
+    const correlationId = parseClientMessageIdForSend(dto.clientMessageId);
 
     const created = await this.prisma.$transaction(async (tx) => {
       const messageRow = await tx.chatMessage.create({
@@ -92,12 +97,12 @@ export class ChatMessagesService {
           },
         },
       });
-      await tx.chatRoom.update({
+      const room = await tx.chatRoom.update({
         where: { id: roomId },
         data: {
           updatedAt: new Date(),
         },
-        select: { id: true },
+        select: { updatedAt: true },
       });
       await tx.roomMember.update({
         where: {
@@ -105,10 +110,29 @@ export class ChatMessagesService {
         },
         data: { lastReadAt: messageRow.createdAt },
       });
-      return messageRow;
+      const memberRows = await tx.roomMember.findMany({
+        where: { roomId },
+        select: { userId: true },
+      });
+      return {
+        messageRow,
+        roomUpdatedAt: room.updatedAt,
+        memberIds: memberRows.map((r) => r.userId),
+      };
     });
 
-    return this.mapMessageToResponse(created, userId);
+    this.chatRealtime.notifyRoomsChanged(
+      created.memberIds,
+      "new_message",
+      roomId,
+      created.roomUpdatedAt,
+    );
+
+    const base = this.mapMessageToResponse(created.messageRow, userId);
+    if (correlationId === undefined) {
+      return base;
+    }
+    return { ...base, clientMessageId: correlationId };
   }
 
   async markRoomRead(

@@ -27,4 +27,17 @@ export class ChatSocketThrottleService {
     this.timestampsByUser.set(userId, arr);
     return true;
   }
+
+  undoLastMessageReservation(userId: string): void {
+    const arr = this.timestampsByUser.get(userId);
+    if (!arr || arr.length === 0) {
+      return;
+    }
+    arr.pop();
+    if (arr.length === 0) {
+      this.timestampsByUser.delete(userId);
+    } else {
+      this.timestampsByUser.set(userId, arr);
+    }
+  }
 }

@@ -17,7 +17,6 @@ const ROLE_CONFIG: Record<
     navItems: [
       { label: "Teams", to: "/teams" },
       { label: "Boards", to: "/boards" },
-      { label: "Workout Plans", to: "/workout-plans" },
       {
         label: "Requests",
         to: REQUESTS_DEFAULT_PATH,

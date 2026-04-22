@@ -313,13 +313,16 @@ export class FakePrismaService {
     update: async (args: {
       where: { id: string };
       data: { updatedAt: Date };
-      select: { id: true };
-    }): Promise<{ id: string }> => {
+      select: { id: true } | { updatedAt: true };
+    }): Promise<{ id: string } | { updatedAt: Date }> => {
       const room = this.rooms.find((entry) => entry.id === args.where.id);
       if (!room) {
         throw new Error("Room not found");
       }
       room.updatedAt = args.data.updatedAt;
+      if ("updatedAt" in args.select && args.select.updatedAt) {
+        return { updatedAt: room.updatedAt };
+      }
       return { id: room.id };
     },
     create: async (args: {
@@ -367,6 +370,14 @@ export class FakePrismaService {
   };
 
   roomMember = {
+    findMany: async (args: {
+      where: { roomId: string };
+      select: { userId: true };
+    }): Promise<{ userId: string }[]> => {
+      return this.members
+        .filter((m) => m.roomId === args.where.roomId)
+        .map((m) => ({ userId: m.userId }));
+    },
     findUnique: async (args: {
       where: { roomId_userId: { roomId: string; userId: string } };
       select: { roomId?: true; lastReadAt?: true };
