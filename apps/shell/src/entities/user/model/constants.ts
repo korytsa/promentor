@@ -36,6 +36,7 @@ const ROLE_CONFIG: Record<
     navItems: [
       { label: "Explore Teams", to: "/explore-teams" },
       { label: "Mentors", to: "/mentors" },
+      { label: "Boards", to: "/boards" },
       { label: "Chat", to: "/chat" },
       { label: "Suggestion", to: "/suggestion" },
     ],

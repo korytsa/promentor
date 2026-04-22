@@ -61,7 +61,7 @@ export const remoteRoutes: RemoteRouteConfig[] = [
     title: "Boards",
     loadingText: "Loading boards...",
     element: <BoardsPage />,
-    allowedRoles: MENTOR_ONLY,
+    allowedRoles: BOTH_ROLES,
   },
   {
     path: "/requests/:direction",

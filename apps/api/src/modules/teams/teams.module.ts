@@ -9,5 +9,6 @@ import { TeamsService } from "./teams.service";
   imports: [AuthModule],
   controllers: [TeamsController, TeamJoinRequestsController],
   providers: [TeamsService, MentorGuard],
+  exports: [TeamsService],
 })
 export class TeamsModule {}

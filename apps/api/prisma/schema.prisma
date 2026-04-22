@@ -63,63 +63,70 @@ enum SuggestionPriority {
   LOW
 }
 
+enum TacticalBoardSurface {
+  HOCKEY
+  FOOTBALL
+}
+
 model User {
-  id            String         @id @default(cuid())
-  fullName      String
-  email         String         @unique
-  passwordHash  String
-  role          UserRole       @default(REGULAR_USER)
-  avatarUrl     String?
-  jobTitle      String?
-  about         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  refreshTokens RefreshToken[]
-  createdRooms  ChatRoom[]     @relation("RoomCreator")
-  roomMembers   RoomMember[]
-  sentMessages  ChatMessage[]
-  coachingTeamsCreated    CoachingTeam[]       @relation("CoachingTeamsCreated")
-  coachingTeamMemberships CoachingTeamMember[] @relation("CoachingTeamMemberships")
-  coachingTeamJoinRequests CoachingTeamJoinRequest[] @relation("CoachingTeamJoinRequests")
-  mentorAvailability        MentorAvailabilityTier?
-  mentorWeeklySessions      Int                    @default(0)
-  mentorshipRequestsAsMentor MentorshipRequest[] @relation("MentorshipMentor")
-  mentorshipRequestsAsMentee MentorshipRequest[] @relation("MentorshipMentee")
+  id                           String                    @id @default(cuid())
+  fullName                     String
+  email                        String                    @unique
+  passwordHash                 String
+  role                         UserRole                  @default(REGULAR_USER)
+  avatarUrl                    String?
+  jobTitle                     String?
+  about                        String?
+  createdAt                    DateTime                  @default(now())
+  updatedAt                    DateTime                  @updatedAt
+  refreshTokens                RefreshToken[]
+  createdRooms                 ChatRoom[]                @relation("RoomCreator")
+  roomMembers                  RoomMember[]
+  sentMessages                 ChatMessage[]
+  coachingTeamsCreated         CoachingTeam[]            @relation("CoachingTeamsCreated")
+  coachingTeamMemberships      CoachingTeamMember[]      @relation("CoachingTeamMemberships")
+  coachingTeamJoinRequests     CoachingTeamJoinRequest[] @relation("CoachingTeamJoinRequests")
+  mentorAvailability           MentorAvailabilityTier?
+  mentorWeeklySessions         Int                       @default(0)
+  mentorshipRequestsAsMentor   MentorshipRequest[]       @relation("MentorshipMentor")
+  mentorshipRequestsAsMentee   MentorshipRequest[]       @relation("MentorshipMentee")
   mentorBroadcastRequests      MentorBroadcastRequest[]
-  mentorBroadcastMenteeTargets MentorBroadcastRequest[]   @relation("MentorBroadcastMenteeTarget")
-  userBoardsOwned            UserBoard[]          @relation("UserBoardsOwned")
-  userBoardMentorOf          UserBoard[]          @relation("UserBoardMentor")
-  userSuggestionsSent        UserSuggestion[]     @relation("UserSuggestionsSent")
-  userSuggestionsToMentor    UserSuggestion[]     @relation("SuggestionRecipientMentor")
+  mentorBroadcastMenteeTargets MentorBroadcastRequest[]  @relation("MentorBroadcastMenteeTarget")
+  userBoardsOwned              UserBoard[]               @relation("UserBoardsOwned")
+  userBoardMentorOf            UserBoard[]               @relation("UserBoardMentor")
+  userSuggestionsSent          UserSuggestion[]          @relation("UserSuggestionsSent")
+  userSuggestionsToMentor      UserSuggestion[]          @relation("SuggestionRecipientMentor")
+  tacticalBoardsCreated        TacticalBoard[]           @relation("TacticalBoardsCreated")
 }
 
 model CoachingTeam {
-  id          String             @id @default(cuid())
-  name        String
-  status      CoachingTeamStatus @default(ACTIVE)
-  createdById String
-  createdBy   User               @relation("CoachingTeamsCreated", fields: [createdById], references: [id], onDelete: Cascade)
-  members     CoachingTeamMember[]
-  joinRequests CoachingTeamJoinRequest[]
+  id                      String                    @id @default(cuid())
+  name                    String
+  status                  CoachingTeamStatus        @default(ACTIVE)
+  createdById             String
+  createdBy               User                      @relation("CoachingTeamsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  members                 CoachingTeamMember[]
+  joinRequests            CoachingTeamJoinRequest[]
   mentorBroadcastRequests MentorBroadcastRequest[]
   userSuggestions         UserSuggestion[]
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  tacticalBoards          TacticalBoard[]
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
 
   @@index([createdById])
   @@map("coaching_teams")
 }
 
 model CoachingTeamJoinRequest {
-  id          String   @id @default(cuid())
+  id          String                        @id @default(cuid())
   teamId      String
-  team        CoachingTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        CoachingTeam                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   requesterId String
-  requester   User     @relation("CoachingTeamJoinRequests", fields: [requesterId], references: [id], onDelete: Cascade)
-  message     String?  @db.Text
+  requester   User                          @relation("CoachingTeamJoinRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  message     String?                       @db.Text
   status      CoachingTeamJoinRequestStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime                      @default(now())
+  updatedAt   DateTime                      @updatedAt
 
   @@unique([teamId, requesterId])
   @@index([teamId, status])
@@ -145,20 +152,20 @@ model MentorshipRequest {
 }
 
 model MentorBroadcastRequest {
-  id          String   @id @default(cuid())
+  id          String                @id @default(cuid())
   mentorId    String
-  mentor      User     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  mentor      User                  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   scope       MentorBroadcastScope
   teamId      String?
-  team        CoachingTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  team        CoachingTeam?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
   menteeId    String?
-  mentee      User?     @relation("MentorBroadcastMenteeTarget", fields: [menteeId], references: [id], onDelete: SetNull)
+  mentee      User?                 @relation("MentorBroadcastMenteeTarget", fields: [menteeId], references: [id], onDelete: SetNull)
   targetLabel String
-  contextLine String?  @db.Text
-  body        String   @db.Text
+  contextLine String?               @db.Text
+  body        String                @db.Text
   status      MentorBroadcastStatus @default(DELIVERED)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 
   @@index([mentorId, status, createdAt])
   @@index([menteeId])
@@ -166,36 +173,38 @@ model MentorBroadcastRequest {
 }
 
 model UserBoard {
-  id        String   @id @default(cuid())
-  name      String
-  ownerId   String
-  owner     User     @relation("UserBoardsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
-  mentorId  String
-  mentor    User     @relation("UserBoardMentor", fields: [mentorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String           @id @default(cuid())
+  name        String
+  ownerId     String
+  owner       User             @relation("UserBoardsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  mentorId    String
+  mentor      User             @relation("UserBoardMentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   suggestions UserSuggestion[]
+
   @@index([ownerId])
   @@index([mentorId])
   @@map("user_boards")
 }
 
 model UserSuggestion {
-  id                 String              @id @default(cuid())
-  senderId           String
-  sender             User                @relation("UserSuggestionsSent", fields: [senderId], references: [id], onDelete: Cascade)
-  scope              SuggestionTargetScope
-  recipientMentorId  String
-  recipientMentor    User                @relation("SuggestionRecipientMentor", fields: [recipientMentorId], references: [id], onDelete: Cascade)
-  teamId             String?
-  team               CoachingTeam?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  boardId            String?
-  userBoard          UserBoard?         @relation(fields: [boardId], references: [id], onDelete: SetNull)
-  title              String
-  detail             String
-  priority           SuggestionPriority
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                String                @id @default(cuid())
+  senderId          String
+  sender            User                  @relation("UserSuggestionsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  scope             SuggestionTargetScope
+  recipientMentorId String
+  recipientMentor   User                  @relation("SuggestionRecipientMentor", fields: [recipientMentorId], references: [id], onDelete: Cascade)
+  teamId            String?
+  team              CoachingTeam?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  boardId           String?
+  userBoard         UserBoard?            @relation(fields: [boardId], references: [id], onDelete: SetNull)
+  title             String
+  detail            String
+  priority          SuggestionPriority
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
   @@index([senderId, createdAt])
   @@index([recipientMentorId, createdAt])
   @@index([boardId])
@@ -214,6 +223,26 @@ model CoachingTeamMember {
   @@map("coaching_team_members")
 }
 
+model TacticalBoard {
+  id          String               @id @default(cuid())
+  name        String
+  teamId      String
+  team        CoachingTeam         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User                 @relation("TacticalBoardsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  sessionDate DateTime             @db.Date
+  boardType   TacticalBoardSurface
+  objects     Json
+  stroke      String
+  strokeWidth Int
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([teamId, updatedAt])
+  @@index([createdById])
+  @@map("tactical_boards")
+}
+
 model RefreshToken {
   id        String   @id @default(cuid())
   tokenHash String   @unique
@@ -224,16 +253,16 @@ model RefreshToken {
 }
 
 model ChatRoom {
-  id         String       @id @default(uuid()) @db.Uuid
-  name       String?
-  type       ChatRoomType
-  privatePairKey String?  @unique
-  createdBy  String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  creator    User         @relation("RoomCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  members    RoomMember[]
-  messages   ChatMessage[]
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String?
+  type           ChatRoomType
+  privatePairKey String?       @unique
+  createdBy      String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  creator        User          @relation("RoomCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members        RoomMember[]
+  messages       ChatMessage[]
 
   @@index([createdBy])
   @@map("chat_rooms")

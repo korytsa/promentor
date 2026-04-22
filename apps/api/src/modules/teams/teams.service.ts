@@ -129,6 +129,24 @@ export class TeamsService {
     return rows.map(toCoachingTeamListItem);
   }
 
+  async getTeamIdsAccessibleToUser(
+    userId: string,
+    role: UserRole,
+  ): Promise<string[]> {
+    if (role === UserRole.MENTOR) {
+      const rows = await this.prisma.coachingTeam.findMany({
+        where: { createdById: userId },
+        select: { id: true },
+      });
+      return rows.map((r) => r.id);
+    }
+    const rows = await this.prisma.coachingTeamMember.findMany({
+      where: { userId },
+      select: { teamId: true },
+    });
+    return rows.map((r) => r.teamId);
+  }
+
   async getTeamById(
     teamId: string,
     userId: string,
