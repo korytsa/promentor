@@ -3,12 +3,12 @@ import { AuthModule } from "../auth/auth.module";
 import { MentorGuard } from "../auth/guards/mentor.guard";
 import { PrismaModule } from "../prisma/prisma.module";
 import { TeamsModule } from "../teams/teams.module";
-import { TacticalBoardsController } from "./tactical-boards.controller";
-import { TacticalBoardsService } from "./tactical-boards.service";
+import { BoardsController } from "./boards.controller";
+import { BoardsService } from "./boards.service";
 
 @Module({
   imports: [PrismaModule, AuthModule, TeamsModule],
-  controllers: [TacticalBoardsController],
-  providers: [TacticalBoardsService, MentorGuard],
+  controllers: [BoardsController],
+  providers: [BoardsService, MentorGuard],
 })
-export class TacticalBoardsModule {}
+export class BoardsModule {}

@@ -1,5 +1,6 @@
+import { SuggestionPriority, SuggestionTargetScope } from "@prisma/client";
 import {
-  IsIn,
+  IsEnum,
   IsOptional,
   IsString,
   MaxLength,
@@ -7,8 +8,8 @@ import {
 } from "class-validator";
 
 export class CreateUserSuggestionDto {
-  @IsIn(["TEAM", "MENTOR", "BOARD"])
-  scope!: "TEAM" | "MENTOR" | "BOARD";
+  @IsEnum(SuggestionTargetScope)
+  scope!: SuggestionTargetScope;
 
   @IsOptional()
   @IsString()
@@ -35,6 +36,6 @@ export class CreateUserSuggestionDto {
   @MaxLength(20_000)
   detail!: string;
 
-  @IsIn(["HIGH", "MEDIUM", "LOW"])
-  priority!: "HIGH" | "MEDIUM" | "LOW";
+  @IsEnum(SuggestionPriority)
+  priority!: SuggestionPriority;
 }

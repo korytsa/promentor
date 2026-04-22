@@ -9,7 +9,7 @@ import { PrismaModule } from "./modules/prisma/prisma.module";
 import { MentorshipModule } from "./modules/mentorship/mentorship.module";
 import { MentorBroadcastModule } from "./modules/mentor-broadcast/mentor-broadcast.module";
 import { SuggestionsModule } from "./modules/suggestions/suggestions.module";
-import { TacticalBoardsModule } from "./modules/tactical-boards/tactical-boards.module";
+import { BoardsModule } from "./modules/boards/boards.module";
 import { TeamsModule } from "./modules/teams/teams.module";
 import { UsersModule } from "./modules/users/users.module";
 
@@ -27,7 +27,7 @@ import { UsersModule } from "./modules/users/users.module";
     MentorshipModule,
     MentorBroadcastModule,
     SuggestionsModule,
-    TacticalBoardsModule,
+    BoardsModule,
   ],
   controllers: [AppController],
   providers: [],

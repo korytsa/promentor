@@ -1,55 +1,30 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { Prisma, PrismaClient, UserRole } from "@prisma/client";
 import {
-  Prisma,
-  PrismaClient,
-  TacticalBoardSurface,
-  UserRole,
-} from "@prisma/client";
-import { CreateTacticalBoardDto } from "./dto/create-tactical-board.dto";
-import { UpdateTacticalBoardDto } from "./dto/update-tactical-board.dto";
-import {
-  TacticalBoardResponse,
-  toTacticalBoardResponse,
-} from "./types/tactical-board-response.type";
+  assertSessionDateYmd,
+  clientBoardTypeToTacticalSurface,
+} from "./constants/boards.constants";
+import { CreateBoardDto } from "./dto/create-board.dto";
+import { UpdateBoardDto } from "./dto/update-board.dto";
+import { BoardResponse, toBoardResponse } from "./types/board-response.type";
 import { TeamsService } from "../teams/teams.service";
 
 const BOARD_INCLUDE = {
   team: { select: { name: true } },
 } as const;
 
-function parseSessionDate(ymd: string): Date {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
-    throw new BadRequestException("sessionDate must be YYYY-MM-DD");
-  }
-  const d = new Date(`${ymd}T12:00:00.000Z`);
-  if (Number.isNaN(d.getTime())) {
-    throw new BadRequestException("Invalid sessionDate");
-  }
-  return d;
-}
-
-function surfaceFromDto(v: "hockey" | "football"): TacticalBoardSurface {
-  return v === "hockey"
-    ? TacticalBoardSurface.HOCKEY
-    : TacticalBoardSurface.FOOTBALL;
-}
-
 @Injectable()
-export class TacticalBoardsService {
+export class BoardsService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly teamsService: TeamsService,
   ) {}
 
-  async listForUser(
-    userId: string,
-    role: UserRole,
-  ): Promise<TacticalBoardResponse[]> {
+  async listForUser(userId: string, role: UserRole): Promise<BoardResponse[]> {
     const teamIds = await this.teamsService.getTeamIdsAccessibleToUser(
       userId,
       role,
@@ -62,14 +37,14 @@ export class TacticalBoardsService {
       orderBy: { updatedAt: "desc" },
       include: BOARD_INCLUDE,
     });
-    return rows.map(toTacticalBoardResponse);
+    return rows.map(toBoardResponse);
   }
 
   async getById(
     id: string,
     userId: string,
     role: UserRole,
-  ): Promise<TacticalBoardResponse> {
+  ): Promise<BoardResponse> {
     const teamIds = await this.teamsService.getTeamIdsAccessibleToUser(
       userId,
       role,
@@ -84,13 +59,10 @@ export class TacticalBoardsService {
     if (!teamIds.includes(row.teamId)) {
       throw new ForbiddenException("You cannot view this board");
     }
-    return toTacticalBoardResponse(row);
+    return toBoardResponse(row);
   }
 
-  async create(
-    mentorId: string,
-    dto: CreateTacticalBoardDto,
-  ): Promise<TacticalBoardResponse> {
+  async create(mentorId: string, dto: CreateBoardDto): Promise<BoardResponse> {
     const team = await this.prisma.coachingTeam.findUnique({
       where: { id: dto.teamId },
       select: { id: true, createdById: true },
@@ -109,22 +81,22 @@ export class TacticalBoardsService {
         name: dto.name.trim(),
         teamId: dto.teamId,
         createdById: mentorId,
-        sessionDate: parseSessionDate(dto.sessionDate),
-        boardType: surfaceFromDto(dto.boardType),
+        sessionDate: assertSessionDateYmd(dto.sessionDate),
+        boardType: clientBoardTypeToTacticalSurface(dto.boardType),
         objects: dto.objects as Prisma.InputJsonValue,
         stroke: dto.stroke,
         strokeWidth: dto.strokeWidth,
       },
       include: BOARD_INCLUDE,
     });
-    return toTacticalBoardResponse(created);
+    return toBoardResponse(created);
   }
 
   async update(
     boardId: string,
     mentorId: string,
-    dto: UpdateTacticalBoardDto,
-  ): Promise<TacticalBoardResponse> {
+    dto: UpdateBoardDto,
+  ): Promise<BoardResponse> {
     const existing = await this.prisma.tacticalBoard.findUnique({
       where: { id: boardId },
       include: { team: { select: { createdById: true } } },
@@ -156,10 +128,10 @@ export class TacticalBoardsService {
       data.team = { connect: { id: dto.teamId } };
     }
     if (dto.sessionDate !== undefined) {
-      data.sessionDate = parseSessionDate(dto.sessionDate);
+      data.sessionDate = assertSessionDateYmd(dto.sessionDate);
     }
     if (dto.boardType !== undefined) {
-      data.boardType = surfaceFromDto(dto.boardType);
+      data.boardType = clientBoardTypeToTacticalSurface(dto.boardType);
     }
     if (dto.objects !== undefined) {
       data.objects = dto.objects as Prisma.InputJsonValue;
@@ -176,7 +148,7 @@ export class TacticalBoardsService {
         where: { id: boardId },
         include: BOARD_INCLUDE,
       });
-      return toTacticalBoardResponse(row);
+      return toBoardResponse(row);
     }
 
     const updated = await this.prisma.tacticalBoard.update({
@@ -184,7 +156,7 @@ export class TacticalBoardsService {
       data,
       include: BOARD_INCLUDE,
     });
-    return toTacticalBoardResponse(updated);
+    return toBoardResponse(updated);
   }
 
   async remove(boardId: string, mentorId: string): Promise<void> {

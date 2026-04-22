@@ -8,10 +8,19 @@ import {
   MentorshipRequestStatus,
   MentorBroadcastScope,
   MentorBroadcastStatus,
+  Prisma,
   PrismaClient,
 } from "@prisma/client";
+import { MentorshipService } from "../mentorship/mentorship.service";
 import { CreateMentorBroadcastRequestDto } from "./dto/create-mentor-broadcast-request.dto";
 import type { MentorBroadcastRequestSentItem } from "./types/mentor-broadcast-request-sent.type";
+
+export const MENTOR_BROADCAST_ALL_INTERNS_TARGET_LABEL = "All interns" as const;
+
+export const MENTOR_BROADCAST_TARGET_QUERY_KIND = {
+  INTERNS: "interns",
+  BOARDS: "boards",
+} as const;
 
 const sentSelect = {
   id: true,
@@ -39,6 +48,13 @@ type SentRow = {
   updatedAt: Date;
 };
 
+function trimBroadcastText(dto: CreateMentorBroadcastRequestDto) {
+  return {
+    body: dto.body.trim(),
+    contextLine: dto.contextLine?.trim() || null,
+  } as const;
+}
+
 function toSentItem(row: SentRow): MentorBroadcastRequestSentItem {
   return {
     id: row.id,
@@ -56,27 +72,15 @@ function toSentItem(row: SentRow): MentorBroadcastRequestSentItem {
 
 @Injectable()
 export class MentorBroadcastService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly mentorshipService: MentorshipService,
+  ) {}
 
-  async listAcceptedInterns(
+  listAcceptedInterns(
     mentorId: string,
   ): Promise<{ id: string; label: string }[]> {
-    const rows = await this.prisma.mentorshipRequest.findMany({
-      where: {
-        mentorId,
-        status: MentorshipRequestStatus.ACCEPTED,
-      },
-      select: {
-        mentee: { select: { id: true, fullName: true } },
-      },
-    });
-    return [...rows]
-      .sort((a, b) =>
-        a.mentee.fullName.localeCompare(b.mentee.fullName, "en", {
-          sensitivity: "base",
-        }),
-      )
-      .map((r) => ({ id: r.mentee.id, label: r.mentee.fullName }));
+    return this.mentorshipService.listAcceptedMenteeLabelsForMentor(mentorId);
   }
 
   async listSent(mentorId: string): Promise<MentorBroadcastRequestSentItem[]> {
@@ -88,14 +92,14 @@ export class MentorBroadcastService {
       orderBy: { createdAt: "desc" },
       select: sentSelect,
     });
-    return (rows as SentRow[]).map(toSentItem);
+    return rows.map(toSentItem);
   }
 
   async create(
     mentorId: string,
     dto: CreateMentorBroadcastRequestDto,
   ): Promise<MentorBroadcastRequestSentItem> {
-    if (dto.scope === "TEAM") {
+    if (dto.scope === MentorBroadcastScope.TEAM) {
       if (!dto.teamId?.trim()) {
         throw new BadRequestException("teamId is required for TEAM scope");
       }
@@ -109,49 +113,46 @@ export class MentorBroadcastService {
       if (team.createdById !== mentorId) {
         throw new ForbiddenException("You can only target teams you own");
       }
-      const body = dto.body.trim();
-      const contextLine = dto.contextLine?.trim() || null;
+      const { body, contextLine } = trimBroadcastText(dto);
+      const data: Prisma.MentorBroadcastRequestCreateInput = {
+        mentor: { connect: { id: mentorId } },
+        scope: MentorBroadcastScope.TEAM,
+        team: { connect: { id: team.id } },
+        targetLabel: team.name,
+        contextLine,
+        body,
+      };
       const created = await this.prisma.mentorBroadcastRequest.create({
-        data: {
-          mentorId,
-          scope: "TEAM",
-          teamId: team.id,
-          menteeId: null,
-          targetLabel: team.name,
-          contextLine,
-          body,
-        } as never,
+        data,
         select: sentSelect,
       });
-      return toSentItem(created as SentRow);
+      return toSentItem(created);
     }
 
     if (dto.teamId) {
       throw new BadRequestException("teamId must not be set for this scope");
     }
 
-    if (dto.scope === "INTERN") {
+    if (dto.scope === MentorBroadcastScope.INTERN) {
       if (dto.allInterns === true) {
         if (dto.menteeId) {
           throw new BadRequestException(
             "Do not set menteeId when allInterns is true",
           );
         }
-        const body = dto.body.trim();
-        const contextLine = dto.contextLine?.trim() || null;
+        const { body, contextLine } = trimBroadcastText(dto);
+        const data: Prisma.MentorBroadcastRequestCreateInput = {
+          mentor: { connect: { id: mentorId } },
+          scope: MentorBroadcastScope.INTERN,
+          targetLabel: MENTOR_BROADCAST_ALL_INTERNS_TARGET_LABEL,
+          contextLine,
+          body,
+        };
         const created = await this.prisma.mentorBroadcastRequest.create({
-          data: {
-            mentorId,
-            scope: "INTERN",
-            teamId: null,
-            menteeId: null,
-            targetLabel: "All interns",
-            contextLine,
-            body,
-          } as never,
+          data,
           select: sentSelect,
         });
-        return toSentItem(created as SentRow);
+        return toSentItem(created);
       }
       if (!dto.menteeId?.trim()) {
         throw new BadRequestException(
@@ -173,24 +174,23 @@ export class MentorBroadcastService {
           "This user is not an accepted intern of yours",
         );
       }
-      const body = dto.body.trim();
-      const contextLine = dto.contextLine?.trim() || null;
+      const { body, contextLine } = trimBroadcastText(dto);
+      const data: Prisma.MentorBroadcastRequestCreateInput = {
+        mentor: { connect: { id: mentorId } },
+        scope: MentorBroadcastScope.INTERN,
+        mentee: { connect: { id: link.mentee.id } },
+        targetLabel: link.mentee.fullName,
+        contextLine,
+        body,
+      };
       const created = await this.prisma.mentorBroadcastRequest.create({
-        data: {
-          mentorId,
-          scope: "INTERN",
-          teamId: null,
-          menteeId: link.mentee.id,
-          targetLabel: link.mentee.fullName,
-          contextLine,
-          body,
-        } as never,
+        data,
         select: sentSelect,
       });
-      return toSentItem(created as SentRow);
+      return toSentItem(created);
     }
 
-    if (dto.scope === "BOARD") {
+    if (dto.scope === MentorBroadcastScope.BOARD) {
       if (dto.allInterns || dto.menteeId) {
         throw new BadRequestException(
           "menteeId and allInterns are only for INTERN scope",
@@ -202,21 +202,19 @@ export class MentorBroadcastService {
           "targetLabel is required for BOARD scope",
         );
       }
-      const body = dto.body.trim();
-      const contextLine = dto.contextLine?.trim() || null;
+      const { body, contextLine } = trimBroadcastText(dto);
+      const data: Prisma.MentorBroadcastRequestCreateInput = {
+        mentor: { connect: { id: mentorId } },
+        scope: MentorBroadcastScope.BOARD,
+        targetLabel: label,
+        contextLine,
+        body,
+      };
       const created = await this.prisma.mentorBroadcastRequest.create({
-        data: {
-          mentorId,
-          scope: "BOARD",
-          teamId: null,
-          menteeId: null,
-          targetLabel: label,
-          contextLine,
-          body,
-        } as never,
+        data,
         select: sentSelect,
       });
-      return toSentItem(created as SentRow);
+      return toSentItem(created);
     }
 
     throw new BadRequestException("Unsupported scope");

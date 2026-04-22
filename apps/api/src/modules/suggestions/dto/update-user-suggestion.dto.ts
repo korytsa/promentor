@@ -1,4 +1,5 @@
-import { IsIn, IsString, MaxLength, MinLength } from "class-validator";
+import { SuggestionPriority } from "@prisma/client";
+import { IsEnum, IsString, MaxLength, MinLength } from "class-validator";
 
 export class UpdateUserSuggestionDto {
   @IsString()
@@ -11,6 +12,6 @@ export class UpdateUserSuggestionDto {
   @MaxLength(20_000)
   detail!: string;
 
-  @IsIn(["HIGH", "MEDIUM", "LOW"])
-  priority!: "HIGH" | "MEDIUM" | "LOW";
+  @IsEnum(SuggestionPriority)
+  priority!: SuggestionPriority;
 }

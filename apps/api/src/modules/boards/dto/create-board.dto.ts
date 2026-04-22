@@ -3,50 +3,46 @@ import {
   IsArray,
   IsIn,
   IsInt,
-  IsOptional,
   IsString,
   Max,
   MaxLength,
   Min,
   MinLength,
 } from "class-validator";
+import {
+  type BoardTypeClient,
+  BOARD_TYPE_CLIENT,
+} from "../constants/boards.constants";
 
-export class UpdateTacticalBoardDto {
-  @IsOptional()
+export class CreateBoardDto {
   @IsString()
   @MinLength(1)
   @MaxLength(200)
-  name?: string;
+  name!: string;
 
-  @IsOptional()
   @IsString()
   @MinLength(1)
-  teamId?: string;
+  teamId!: string;
 
-  @IsOptional()
   @IsString()
   @MinLength(10)
   @MaxLength(10)
-  sessionDate?: string;
+  sessionDate!: string;
 
-  @IsOptional()
-  @IsIn(["hockey", "football"])
-  boardType?: "hockey" | "football";
+  @IsIn([...BOARD_TYPE_CLIENT])
+  boardType!: BoardTypeClient;
 
-  @IsOptional()
   @IsArray()
-  objects?: unknown[];
+  objects!: unknown[];
 
-  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(32)
-  stroke?: string;
+  stroke!: string;
 
-  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(50)
-  strokeWidth?: number;
+  strokeWidth!: number;
 }

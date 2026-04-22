@@ -7,9 +7,10 @@ import {
 import {
   MentorshipRequestStatus,
   PrismaClient,
-  type SuggestionPriority,
-  type SuggestionTargetScope,
+  SuggestionPriority,
+  SuggestionTargetScope,
 } from "@prisma/client";
+import { MentorshipService } from "../mentorship/mentorship.service";
 import { CreateUserBoardDto } from "./dto/create-user-board.dto";
 import { CreateUserSuggestionDto } from "./dto/create-user-suggestion.dto";
 import { UpdateUserSuggestionDto } from "./dto/update-user-suggestion.dto";
@@ -44,27 +45,13 @@ type SuggestionRowWithMeta = {
 
 @Injectable()
 export class SuggestionsService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly mentorshipService: MentorshipService,
+  ) {}
 
-  async listMentorTargets(
-    menteeId: string,
-  ): Promise<SuggestionMentorTargetRow[]> {
-    const rows = await this.prisma.mentorshipRequest.findMany({
-      where: {
-        menteeId,
-        status: MentorshipRequestStatus.ACCEPTED,
-      },
-      select: {
-        mentor: { select: { id: true, fullName: true } },
-      },
-    });
-    return [...rows]
-      .sort((a, b) =>
-        a.mentor.fullName.localeCompare(b.mentor.fullName, "en", {
-          sensitivity: "base",
-        }),
-      )
-      .map((r) => ({ id: r.mentor.id, label: r.mentor.fullName }));
+  listMentorTargets(menteeId: string): Promise<SuggestionMentorTargetRow[]> {
+    return this.mentorshipService.listAcceptedMentorLabelsForMentee(menteeId);
   }
 
   async listBoardTargets(ownerId: string): Promise<SuggestionBoardTargetRow[]> {
@@ -133,7 +120,7 @@ export class SuggestionsService {
     senderId: string,
     dto: CreateUserSuggestionDto,
   ): Promise<UserSuggestionSentItem> {
-    if (dto.scope === "TEAM") {
+    if (dto.scope === SuggestionTargetScope.TEAM) {
       if (!dto.teamId) {
         throw new BadRequestException("teamId is required for TEAM scope");
       }
@@ -147,7 +134,7 @@ export class SuggestionsService {
       const created = await this.prisma.userSuggestion.create({
         data: {
           senderId,
-          scope: "TEAM",
+          scope: SuggestionTargetScope.TEAM,
           recipientMentorId: createdById,
           teamId: dto.teamId,
           boardId: null,
@@ -159,7 +146,7 @@ export class SuggestionsService {
       });
       return this.toSentItem(created as SuggestionRowWithMeta);
     }
-    if (dto.scope === "MENTOR") {
+    if (dto.scope === SuggestionTargetScope.MENTOR) {
       if (!dto.targetMentorId) {
         throw new BadRequestException(
           "targetMentorId is required for MENTOR scope",
@@ -183,7 +170,7 @@ export class SuggestionsService {
       const created = await this.prisma.userSuggestion.create({
         data: {
           senderId,
-          scope: "MENTOR",
+          scope: SuggestionTargetScope.MENTOR,
           recipientMentorId: dto.targetMentorId,
           teamId: null,
           boardId: null,
@@ -195,7 +182,7 @@ export class SuggestionsService {
       });
       return this.toSentItem(created as SuggestionRowWithMeta);
     }
-    if (dto.scope === "BOARD") {
+    if (dto.scope === SuggestionTargetScope.BOARD) {
       if (!dto.boardId) {
         throw new BadRequestException("boardId is required for BOARD scope");
       }
@@ -213,7 +200,7 @@ export class SuggestionsService {
       const created = await this.prisma.userSuggestion.create({
         data: {
           senderId,
-          scope: "BOARD",
+          scope: SuggestionTargetScope.BOARD,
           recipientMentorId: board.mentorId,
           teamId: null,
           boardId: board.id,

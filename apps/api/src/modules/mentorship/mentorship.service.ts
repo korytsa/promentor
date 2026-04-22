@@ -15,9 +15,55 @@ import { CreateMentorshipRequestDto } from "./dto/create-mentorship-request.dto"
 import type { MentorExploreRowResponse } from "./types/mentor-explore-row.type";
 import type { MentorshipRequestInboxItemResponse } from "./types/mentorship-request-inbox-response.type";
 
+const DISPLAY_NAME_SORT_LOCALE = "en" as const;
+
+function compareDisplayNames(a: string, b: string): number {
+  return a.localeCompare(b, DISPLAY_NAME_SORT_LOCALE, { sensitivity: "base" });
+}
+
 @Injectable()
 export class MentorshipService {
   constructor(private readonly prisma: PrismaClient) {}
+
+  private sortIdLabelsByLabel(
+    items: { id: string; label: string }[],
+  ): { id: string; label: string }[] {
+    return [...items].sort((a, b) => compareDisplayNames(a.label, b.label));
+  }
+
+  async listAcceptedMentorLabelsForMentee(
+    menteeId: string,
+  ): Promise<{ id: string; label: string }[]> {
+    const rows = await this.prisma.mentorshipRequest.findMany({
+      where: {
+        menteeId,
+        status: MentorshipRequestStatus.ACCEPTED,
+      },
+      select: {
+        mentor: { select: { id: true, fullName: true } },
+      },
+    });
+    return this.sortIdLabelsByLabel(
+      rows.map((r) => ({ id: r.mentor.id, label: r.mentor.fullName })),
+    );
+  }
+
+  async listAcceptedMenteeLabelsForMentor(
+    mentorId: string,
+  ): Promise<{ id: string; label: string }[]> {
+    const rows = await this.prisma.mentorshipRequest.findMany({
+      where: {
+        mentorId,
+        status: MentorshipRequestStatus.ACCEPTED,
+      },
+      select: {
+        mentee: { select: { id: true, fullName: true } },
+      },
+    });
+    return this.sortIdLabelsByLabel(
+      rows.map((r) => ({ id: r.mentee.id, label: r.mentee.fullName })),
+    );
+  }
 
   private availabilityLabel(
     tier: "HIGH" | "MEDIUM" | "LOW" | null,

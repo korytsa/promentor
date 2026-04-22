@@ -1,6 +1,7 @@
+import { MentorBroadcastScope } from "@prisma/client";
 import {
   IsBoolean,
-  IsIn,
+  IsEnum,
   IsOptional,
   IsString,
   MaxLength,
@@ -8,8 +9,8 @@ import {
 } from "class-validator";
 
 export class CreateMentorBroadcastRequestDto {
-  @IsIn(["TEAM", "INTERN", "BOARD"])
-  scope!: "TEAM" | "INTERN" | "BOARD";
+  @IsEnum(MentorBroadcastScope)
+  scope!: MentorBroadcastScope;
 
   @IsOptional()
   @IsString()
