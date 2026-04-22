@@ -4,6 +4,7 @@ import { AppController } from "./app.controller";
 import { throttlerOptionsFromEnv } from "./config/throttle.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ChatModule } from "./modules/chat/chat.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { MentorshipModule } from "./modules/mentorship/mentorship.module";
 import { MentorBroadcastModule } from "./modules/mentor-broadcast/mentor-broadcast.module";
@@ -19,6 +20,7 @@ import { UsersModule } from "./modules/users/users.module";
     }),
     AuthModule,
     ChatModule,
+    DashboardModule,
     UsersModule,
     TeamsModule,
     MentorshipModule,

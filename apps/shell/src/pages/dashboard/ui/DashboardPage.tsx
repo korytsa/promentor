@@ -1,43 +1,15 @@
-import { MENTOR_FLOW, USER_FLOW } from "@/entities/dashboard";
-import { useSessionQuery } from "@/features/auth/api";
-import { Typography } from "@promentorapp/ui-kit";
 import {
   DASHBOARD_STATS,
   DASHBOARD_TAGS,
-  MOMENTUM_SNAPSHOT,
+  MENTOR_FLOW,
   SECTION_CARD_BASE,
-  SNAPSHOT_TILE_BASE,
   TONE_STYLES,
   type Tone,
-  WEEKLY_FOCUS,
-} from "../model/constants";
-
-const SnapshotTile = ({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: Tone;
-}) => (
-  <div
-    className={`${SNAPSHOT_TILE_BASE} ${TONE_STYLES[tone].border} ${TONE_STYLES[tone].tileBg}`}
-  >
-    <Typography
-      component="p"
-      className="text-xs uppercase tracking-wide pm-text-secondary"
-    >
-      {label}
-    </Typography>
-    <Typography
-      component="p"
-      className="mt-2 text-2xl font-bold pm-text-primary"
-    >
-      {value}
-    </Typography>
-  </div>
-);
+  USER_FLOW,
+} from "@/entities/dashboard";
+import { useSessionQuery } from "@/features/auth/api";
+import { useDashboardMetricsQuery } from "@/features/dashboard/api/useDashboardMetricsQuery";
+import { Typography } from "@promentorapp/ui-kit";
 
 const FlowCard = ({
   title,
@@ -72,6 +44,7 @@ const FlowCard = ({
 
 export const DashboardPage = () => {
   const { data: user } = useSessionQuery();
+  const { data: metrics, isPending, isError } = useDashboardMetricsQuery();
   const isMentor = user?.role === "MENTOR";
 
   return (
@@ -112,7 +85,7 @@ export const DashboardPage = () => {
         {DASHBOARD_STATS.map((stat) => (
           <article
             key={stat.label}
-            className={`rounded-lg border bg-[rgba(6,30,46,0.45)] p-6 shadow-[0_8px_18px_rgba(15,23,42,0.18)] transition-colors duration-200 ${`${TONE_STYLES[stat.tone].border} ${TONE_STYLES[stat.tone].hover}`}`}
+            className={`rounded-lg border bg-[rgba(6,30,46,0.45)] p-6 shadow-[0_8px_18px_rgba(15,23,42,0.18)] ${TONE_STYLES[stat.tone].border}`}
           >
             <Typography
               component="h3"
@@ -124,7 +97,11 @@ export const DashboardPage = () => {
               component="p"
               className={`mt-3 text-4xl font-black leading-none ${TONE_STYLES[stat.tone].text}`}
             >
-              {stat.value}
+              {isPending
+                ? "…"
+                : isError || metrics == null
+                  ? "—"
+                  : String(metrics[stat.metric])}
             </Typography>
             <Typography
               variantStyle="body"
@@ -134,73 +111,6 @@ export const DashboardPage = () => {
             </Typography>
           </article>
         ))}
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <article
-          className={`${SECTION_CARD_BASE} bg-[linear-gradient(180deg,rgba(8,145,178,0.16),rgba(15,23,42,0.34))]`}
-        >
-          <Typography
-            component="h3"
-            className="text-lg font-semibold pm-text-primary"
-          >
-            This Week Focus
-          </Typography>
-          <Typography variantStyle="body" className="mt-1 pm-text-secondary">
-            Priorities that keep teams and mentors aligned this sprint.
-          </Typography>
-
-          <div className="mt-5 space-y-4">
-            {WEEKLY_FOCUS.map((item) => (
-              <div key={item.title} className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <Typography
-                    component="p"
-                    className="text-sm font-medium pm-text-primary"
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography
-                    component="span"
-                    className="text-xs uppercase tracking-wide pm-text-secondary"
-                  >
-                    {item.progress}%
-                  </Typography>
-                </div>
-                <div className="h-2 overflow-hidden rounded-lg bg-[rgba(148,163,184,0.20)]">
-                  <div
-                    className="h-full rounded-lg bg-[linear-gradient(90deg,var(--pm-accent-cyan),var(--pm-accent-blue))]"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
-                <Typography component="p" className="text-xs pm-text-secondary">
-                  Owner: {item.owner}
-                </Typography>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article
-          className={`${SECTION_CARD_BASE} bg-[linear-gradient(180deg,rgba(8,145,178,0.12),rgba(15,23,42,0.34))]`}
-        >
-          <Typography
-            component="h3"
-            className="text-lg font-semibold text-[var(--pm-accent-blue)]"
-          >
-            Momentum Snapshot
-          </Typography>
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            {MOMENTUM_SNAPSHOT.map((item) => (
-              <SnapshotTile
-                key={item.label}
-                label={item.label}
-                value={item.value}
-                tone={item.tone}
-              />
-            ))}
-          </div>
-        </article>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
