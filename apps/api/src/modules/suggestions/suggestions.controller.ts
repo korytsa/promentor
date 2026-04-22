@@ -13,7 +13,6 @@ import {
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { MentorGuard } from "../auth/guards/mentor.guard";
-import { RegularUserGuard } from "../auth/guards/regular-user.guard";
 import type { JwtPayload } from "../auth/types/jwt-payload.type";
 import { CreateUserBoardDto } from "./dto/create-user-board.dto";
 import { CreateUserSuggestionDto } from "./dto/create-user-suggestion.dto";
@@ -40,7 +39,6 @@ export class SuggestionsController {
   }
 
   @Get("mentor-targets/mentors")
-  @UseGuards(RegularUserGuard)
   listMentorTargets(
     @CurrentUser() user: JwtPayload,
   ): Promise<SuggestionMentorTargetRow[]> {
@@ -48,7 +46,6 @@ export class SuggestionsController {
   }
 
   @Get("mentor-targets/boards")
-  @UseGuards(RegularUserGuard)
   listBoardTargets(
     @CurrentUser() user: JwtPayload,
   ): Promise<SuggestionBoardTargetRow[]> {
@@ -56,7 +53,6 @@ export class SuggestionsController {
   }
 
   @Post("mentor-targets/boards")
-  @UseGuards(RegularUserGuard)
   createBoard(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateUserBoardDto,
@@ -65,13 +61,11 @@ export class SuggestionsController {
   }
 
   @Get()
-  @UseGuards(RegularUserGuard)
   listMy(@CurrentUser() user: JwtPayload): Promise<UserSuggestionSentItem[]> {
     return this.suggestionsService.listMySuggestions(user.sub);
   }
 
   @Post()
-  @UseGuards(RegularUserGuard)
   create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateUserSuggestionDto,
@@ -80,7 +74,6 @@ export class SuggestionsController {
   }
 
   @Patch(":id")
-  @UseGuards(RegularUserGuard)
   update(
     @CurrentUser() user: JwtPayload,
     @Param("id") id: string,
@@ -90,7 +83,6 @@ export class SuggestionsController {
   }
 
   @Delete(":id")
-  @UseGuards(RegularUserGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @CurrentUser() user: JwtPayload,
