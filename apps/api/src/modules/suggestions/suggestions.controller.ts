@@ -24,7 +24,7 @@ import type {
   SuggestionMentorTargetRow,
   UserSuggestionInboxItem,
   UserSuggestionSentItem,
-} from "./types/user-suggestion-api.types";
+} from "./types/suggestion-api.types";
 
 @Controller("user-suggestions")
 @UseGuards(JwtAuthGuard)

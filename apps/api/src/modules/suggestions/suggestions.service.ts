@@ -18,7 +18,7 @@ import type {
   SuggestionMentorTargetRow,
   UserSuggestionInboxItem,
   UserSuggestionSentItem,
-} from "./types/user-suggestion-api.types";
+} from "./types/suggestion-api.types";
 
 const SUGGESTION_INCLUDE = {
   team: { select: { name: true } },
