@@ -11,7 +11,8 @@ type DashboardMetrics = {
 export function useDashboardMetricsQuery() {
   return useQuery({
     queryKey: ["dashboard", "metrics"] as const,
-    staleTime: 60_000,
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<DashboardMetrics> => {
       const res = await requestWithAutoRefresh<DashboardMetrics>({
         url: "/dashboard/metrics",

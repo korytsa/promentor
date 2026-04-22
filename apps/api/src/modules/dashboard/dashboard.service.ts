@@ -19,7 +19,7 @@ export class DashboardService {
       }),
       this.prisma.user.count({ where: { role: UserRole.MENTOR } }),
       this.prisma.user.count({ where: { role: UserRole.REGULAR_USER } }),
-      this.prisma.userBoard.count(),
+      this.prisma.tacticalBoard.count(),
     ]);
 
     return { teams, mentors, interns, boards };
