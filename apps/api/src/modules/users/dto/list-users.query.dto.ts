@@ -1,5 +1,6 @@
+import { UserRole } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsInt, IsOptional, Max, Min } from "class-validator";
+import { IsEnum, IsInt, IsOptional, Max, Min } from "class-validator";
 
 export class ListUsersQueryDto {
   @IsOptional()
@@ -14,4 +15,8 @@ export class ListUsersQueryDto {
   @IsInt()
   @Min(0)
   offset?: number;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 }

@@ -1,6 +1,10 @@
 import { Settings, UserIcon } from "lucide-react";
 import type { AuthMode, AuthRoleOption, NavItem, UserRole } from "../types";
 
+export function getRoleEntryPath(role: UserRole): string {
+  return role === "MENTOR" ? "/teams" : "/explore-teams";
+}
+
 export const AUTH_LOGIN_REDIRECT_PATH = "/login/mentor";
 
 export const AUTH_APP_HOME_PATH = "/";
@@ -32,6 +36,7 @@ const ROLE_CONFIG: Record<
     navItems: [
       { label: "Explore Teams", to: "/explore-teams" },
       { label: "Mentors", to: "/mentors" },
+      { label: "Boards", to: "/boards" },
       { label: "Chat", to: "/chat" },
       { label: "Suggestion", to: "/suggestion" },
     ],
