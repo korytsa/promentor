@@ -4,7 +4,13 @@ import { AppController } from "./app.controller";
 import { throttlerOptionsFromEnv } from "./config/throttle.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ChatModule } from "./modules/chat/chat.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
+import { MentorshipModule } from "./modules/mentorship/mentorship.module";
+import { MentorBroadcastModule } from "./modules/mentor-broadcast/mentor-broadcast.module";
+import { SuggestionsModule } from "./modules/suggestions/suggestions.module";
+import { BoardsModule } from "./modules/boards/boards.module";
+import { TeamsModule } from "./modules/teams/teams.module";
 import { UsersModule } from "./modules/users/users.module";
 
 @Module({
@@ -15,7 +21,13 @@ import { UsersModule } from "./modules/users/users.module";
     }),
     AuthModule,
     ChatModule,
+    DashboardModule,
     UsersModule,
+    TeamsModule,
+    MentorshipModule,
+    MentorBroadcastModule,
+    SuggestionsModule,
+    BoardsModule,
   ],
   controllers: [AppController],
   providers: [],

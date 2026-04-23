@@ -8,6 +8,7 @@ import { ChatRouteLayout } from "./routing/ui/ChatRouteLayout";
 import { GuestRoute } from "./routing/ui/GuestRoute";
 import { ProtectedRemoteRoute } from "./routing/ui/ProtectedRemoteRoute";
 import { ProtectedRoute } from "./routing/ui/ProtectedRoute";
+import { RoleRoute } from "./routing/ui/RoleRoute";
 
 export function App() {
   return (
@@ -21,21 +22,25 @@ export function App() {
         }
       />
 
-      {remoteRoutes.map(({ path, title, loadingText, element }) => (
-        <Route
-          key={path}
-          path={path}
-          element={
-            <ProtectedRemoteRoute title={title} loadingText={loadingText}>
-              {isChatRoute(path) ? (
-                <ChatRouteLayout>{element}</ChatRouteLayout>
-              ) : (
-                element
-              )}
-            </ProtectedRemoteRoute>
-          }
-        />
-      ))}
+      {remoteRoutes.map(
+        ({ path, title, loadingText, element, allowedRoles }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRemoteRoute title={title} loadingText={loadingText}>
+                <RoleRoute allowedRoles={allowedRoles}>
+                  {isChatRoute(path) ? (
+                    <ChatRouteLayout>{element}</ChatRouteLayout>
+                  ) : (
+                    element
+                  )}
+                </RoleRoute>
+              </ProtectedRemoteRoute>
+            }
+          />
+        ),
+      )}
 
       {guestRoutes.map(({ path, element }) => (
         <Route

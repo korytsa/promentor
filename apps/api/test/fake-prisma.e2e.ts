@@ -1,4 +1,9 @@
-import { ChatRoomType, UserRole } from "@prisma/client";
+import {
+  ChatRoomType,
+  MentorBroadcastScope,
+  MentorBroadcastStatus,
+  UserRole,
+} from "@prisma/client";
 
 export type FakeUser = {
   id: string;
@@ -26,6 +31,26 @@ export type FakeMessage = {
   senderId: string;
   message: string;
   createdAt: Date;
+};
+export type FakeUserBoard = {
+  id: string;
+  name: string;
+  ownerId: string;
+  mentorId: string;
+};
+export type FakeMentorBroadcastRequest = {
+  id: string;
+  mentorId: string;
+  scope: MentorBroadcastScope;
+  teamId: string | null;
+  menteeId: string | null;
+  boardId: string | null;
+  targetLabel: string;
+  contextLine: string | null;
+  body: string;
+  status: MentorBroadcastStatus;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export class FakePrismaService {
@@ -76,6 +101,21 @@ export class FakePrismaService {
     { roomId: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5", userId: "user_2" },
   ];
   messages: FakeMessage[] = [];
+  userBoards: FakeUserBoard[] = [
+    {
+      id: "board_ok_e2e",
+      name: "Mentor One Board",
+      ownerId: "user_2",
+      mentorId: "user_1",
+    },
+    {
+      id: "board_foreign_e2e",
+      name: "Other mentor board",
+      ownerId: "user_2",
+      mentorId: "user_3",
+    },
+  ];
+  mentorBroadcastRequests: FakeMentorBroadcastRequest[] = [];
 
   $connect = async () => undefined;
   $disconnect = async () => undefined;
@@ -89,9 +129,26 @@ export class FakePrismaService {
   };
 
   user = {
-    count: async (): Promise<number> => this.users.length,
+    count: async (args?: {
+      where?: { role?: UserRole } | Record<string, never>;
+    }): Promise<number> => {
+      const w = args?.where;
+      const isEmptyWhere =
+        w === undefined ||
+        w === null ||
+        (typeof w === "object" && Object.keys(w).length === 0);
+      if (isEmptyWhere) {
+        return this.users.length;
+      }
+      if (w && "role" in w && w.role !== undefined) {
+        return this.users.filter((u) => u.role === w.role).length;
+      }
+      return this.users.length;
+    },
     findMany: async (args: {
       where?:
+        | { role: UserRole }
+        | Record<string, never>
         | { id: { in: string[] } }
         | {
             id: { not: string };
@@ -141,28 +198,66 @@ export class FakePrismaService {
         }>
     > => {
       const where = args.where;
-      if (!where) {
-        const skip = args.skip ?? 0;
-        const take = args.take ?? this.users.length;
-        const rows = [...this.users].sort((a, b) =>
+      const isEmptyWhere =
+        where === undefined ||
+        where === null ||
+        (typeof where === "object" && Object.keys(where).length === 0);
+
+      const mapFullUser = (user: FakeUser) => ({
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        jobTitle: user.jobTitle ?? null,
+        about: user.about ?? null,
+      });
+
+      const sliceSortedList = (rows: FakeUser[]) => {
+        const sorted = [...rows].sort((a, b) =>
           a.fullName.localeCompare(b.fullName),
         );
-        return rows.slice(skip, skip + take).map((user) => ({
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          avatarUrl: user.avatarUrl,
-          jobTitle: user.jobTitle ?? null,
-          about: user.about ?? null,
-        }));
+        const skip = args.skip ?? 0;
+        const take = args.take ?? sorted.length;
+        return sorted.slice(skip, skip + take).map(mapFullUser);
+      };
+
+      if (isEmptyWhere) {
+        return sliceSortedList(this.users);
       }
-      if ("in" in where.id) {
+
+      if (
+        typeof where === "object" &&
+        "role" in where &&
+        (where as { role?: UserRole }).role !== undefined &&
+        !("id" in where)
+      ) {
+        const role = (where as { role: UserRole }).role;
+        return sliceSortedList(this.users.filter((u) => u.role === role));
+      }
+
+      if (
+        typeof where === "object" &&
+        "id" in where &&
+        where.id &&
+        typeof where.id === "object" &&
+        "in" in where.id
+      ) {
         const ids = new Set(where.id.in);
         return this.users
           .filter((user) => ids.has(user.id))
           .map((user) => ({ id: user.id }));
-      } else {
+      }
+
+      if (
+        typeof where === "object" &&
+        "id" in where &&
+        where.id &&
+        typeof where.id === "object" &&
+        "not" in where.id &&
+        "OR" in where &&
+        Array.isArray((where as { OR: unknown }).OR)
+      ) {
         const searchWhere = where as {
           id: { not: string };
           OR: Array<{
@@ -192,6 +287,8 @@ export class FakePrismaService {
           jobTitle: u.jobTitle ?? null,
         }));
       }
+
+      return sliceSortedList(this.users);
     },
     update: async (args: {
       where: { id: string };
@@ -480,6 +577,99 @@ export class FakePrismaService {
         };
       }
       return created;
+    },
+  };
+
+  userBoard = {
+    findFirst: async (args: {
+      where: { id: string; mentorId: string };
+      select: { id: true; name: true };
+    }): Promise<{ id: string; name: string } | null> => {
+      const board = this.userBoards.find(
+        (b) => b.id === args.where.id && b.mentorId === args.where.mentorId,
+      );
+      return board ? { id: board.id, name: board.name } : null;
+    },
+    findMany: async (args: {
+      where: { mentorId: string };
+      select: { id: true; name: true };
+      orderBy?: { name: "asc" };
+    }): Promise<Array<{ id: string; name: string }>> => {
+      const rows = this.userBoards
+        .filter((b) => b.mentorId === args.where.mentorId)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return rows.map((b) => ({ id: b.id, name: b.name }));
+    },
+  };
+
+  mentorBroadcastRequest = {
+    create: async (args: {
+      data: {
+        mentor: { connect: { id: string } };
+        scope: MentorBroadcastScope;
+        team?: { connect: { id: string } };
+        mentee?: { connect: { id: string } };
+        userBoard?: { connect: { id: string } };
+        targetLabel: string;
+        contextLine: string | null;
+        body: string;
+      };
+      select: {
+        id: true;
+        scope: true;
+        teamId: true;
+        menteeId: true;
+        boardId: true;
+        targetLabel: true;
+        contextLine: true;
+        body: true;
+        status: true;
+        createdAt: true;
+        updatedAt: true;
+      };
+    }): Promise<{
+      id: string;
+      scope: MentorBroadcastScope;
+      teamId: string | null;
+      menteeId: string | null;
+      boardId: string | null;
+      targetLabel: string;
+      contextLine: string | null;
+      body: string;
+      status: MentorBroadcastStatus;
+      createdAt: Date;
+      updatedAt: Date;
+    }> => {
+      const mentorId = args.data.mentor.connect.id;
+      const now = new Date();
+      const row: FakeMentorBroadcastRequest = {
+        id: `mbr_${crypto.randomUUID()}`,
+        mentorId,
+        scope: args.data.scope,
+        teamId: args.data.team?.connect.id ?? null,
+        menteeId: args.data.mentee?.connect.id ?? null,
+        boardId: args.data.userBoard?.connect.id ?? null,
+        targetLabel: args.data.targetLabel,
+        contextLine: args.data.contextLine,
+        body: args.data.body,
+        status: MentorBroadcastStatus.DELIVERED,
+        createdAt: now,
+        updatedAt: now,
+      };
+      this.mentorBroadcastRequests.push(row);
+      return {
+        id: row.id,
+        scope: row.scope,
+        teamId: row.teamId,
+        menteeId: row.menteeId,
+        boardId: row.boardId,
+        targetLabel: row.targetLabel,
+        contextLine: row.contextLine,
+        body: row.body,
+        status: row.status,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      };
     },
   };
 }

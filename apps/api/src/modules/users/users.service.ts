@@ -47,9 +47,15 @@ export class UsersService {
     const limit = query.limit ?? DEFAULT_LIST_LIMIT;
     const offset = query.offset ?? DEFAULT_LIST_OFFSET;
 
+    const where: Prisma.UserWhereInput = {};
+    if (query.role !== undefined) {
+      where.role = query.role;
+    }
+
     const [total, users] = await this.prisma.$transaction([
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
       this.prisma.user.findMany({
+        where,
         select: USER_RESPONSE_SELECT,
         orderBy: [{ fullName: "asc" }, { createdAt: "asc" }],
         skip: offset,

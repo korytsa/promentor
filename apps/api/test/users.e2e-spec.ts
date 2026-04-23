@@ -233,7 +233,7 @@ describe("Users me endpoints (e2e)", () => {
     );
     expect(res.body.errors).toEqual([
       "fullName must be longer than or equal to 3 characters",
-      "avatarUrl must be a PNG, JPEG, GIF, or WebP data URL from an uploaded image",
+      "avatarUrl must be a PNG, JPEG, JPG, GIF, or WebP image (data URL or http(s) link to such a file)",
     ]);
   });
 
