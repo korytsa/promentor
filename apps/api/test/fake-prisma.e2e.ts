@@ -1,4 +1,9 @@
-import { ChatRoomType, UserRole } from "@prisma/client";
+import {
+  ChatRoomType,
+  MentorBroadcastScope,
+  MentorBroadcastStatus,
+  UserRole,
+} from "@prisma/client";
 
 export type FakeUser = {
   id: string;
@@ -26,6 +31,26 @@ export type FakeMessage = {
   senderId: string;
   message: string;
   createdAt: Date;
+};
+export type FakeUserBoard = {
+  id: string;
+  name: string;
+  ownerId: string;
+  mentorId: string;
+};
+export type FakeMentorBroadcastRequest = {
+  id: string;
+  mentorId: string;
+  scope: MentorBroadcastScope;
+  teamId: string | null;
+  menteeId: string | null;
+  boardId: string | null;
+  targetLabel: string;
+  contextLine: string | null;
+  body: string;
+  status: MentorBroadcastStatus;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export class FakePrismaService {
@@ -76,6 +101,21 @@ export class FakePrismaService {
     { roomId: "5db0da20-b916-4c44-8ad6-b4bea76f0ea5", userId: "user_2" },
   ];
   messages: FakeMessage[] = [];
+  userBoards: FakeUserBoard[] = [
+    {
+      id: "board_ok_e2e",
+      name: "Mentor One Board",
+      ownerId: "user_2",
+      mentorId: "user_1",
+    },
+    {
+      id: "board_foreign_e2e",
+      name: "Other mentor board",
+      ownerId: "user_2",
+      mentorId: "user_3",
+    },
+  ];
+  mentorBroadcastRequests: FakeMentorBroadcastRequest[] = [];
 
   $connect = async () => undefined;
   $disconnect = async () => undefined;
@@ -526,6 +566,99 @@ export class FakePrismaService {
         };
       }
       return created;
+    },
+  };
+
+  userBoard = {
+    findFirst: async (args: {
+      where: { id: string; mentorId: string };
+      select: { id: true; name: true };
+    }): Promise<{ id: string; name: string } | null> => {
+      const board = this.userBoards.find(
+        (b) => b.id === args.where.id && b.mentorId === args.where.mentorId,
+      );
+      return board ? { id: board.id, name: board.name } : null;
+    },
+    findMany: async (args: {
+      where: { mentorId: string };
+      select: { id: true; name: true };
+      orderBy?: { name: "asc" };
+    }): Promise<Array<{ id: string; name: string }>> => {
+      const rows = this.userBoards
+        .filter((b) => b.mentorId === args.where.mentorId)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return rows.map((b) => ({ id: b.id, name: b.name }));
+    },
+  };
+
+  mentorBroadcastRequest = {
+    create: async (args: {
+      data: {
+        mentor: { connect: { id: string } };
+        scope: MentorBroadcastScope;
+        team?: { connect: { id: string } };
+        mentee?: { connect: { id: string } };
+        userBoard?: { connect: { id: string } };
+        targetLabel: string;
+        contextLine: string | null;
+        body: string;
+      };
+      select: {
+        id: true;
+        scope: true;
+        teamId: true;
+        menteeId: true;
+        boardId: true;
+        targetLabel: true;
+        contextLine: true;
+        body: true;
+        status: true;
+        createdAt: true;
+        updatedAt: true;
+      };
+    }): Promise<{
+      id: string;
+      scope: MentorBroadcastScope;
+      teamId: string | null;
+      menteeId: string | null;
+      boardId: string | null;
+      targetLabel: string;
+      contextLine: string | null;
+      body: string;
+      status: MentorBroadcastStatus;
+      createdAt: Date;
+      updatedAt: Date;
+    }> => {
+      const mentorId = args.data.mentor.connect.id;
+      const now = new Date();
+      const row: FakeMentorBroadcastRequest = {
+        id: `mbr_${crypto.randomUUID()}`,
+        mentorId,
+        scope: args.data.scope,
+        teamId: args.data.team?.connect.id ?? null,
+        menteeId: args.data.mentee?.connect.id ?? null,
+        boardId: args.data.userBoard?.connect.id ?? null,
+        targetLabel: args.data.targetLabel,
+        contextLine: args.data.contextLine,
+        body: args.data.body,
+        status: MentorBroadcastStatus.DELIVERED,
+        createdAt: now,
+        updatedAt: now,
+      };
+      this.mentorBroadcastRequests.push(row);
+      return {
+        id: row.id,
+        scope: row.scope,
+        teamId: row.teamId,
+        menteeId: row.menteeId,
+        boardId: row.boardId,
+        targetLabel: row.targetLabel,
+        contextLine: row.contextLine,
+        body: row.body,
+        status: row.status,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      };
     },
   };
 }

@@ -86,6 +86,17 @@ export class MentorBroadcastService {
     return this.mentorshipService.listAcceptedMenteeLabelsForMentor(mentorId);
   }
 
+  async listBoardsForMentor(
+    mentorId: string,
+  ): Promise<{ id: string; label: string }[]> {
+    const boards = await this.prisma.userBoard.findMany({
+      where: { mentorId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    });
+    return boards.map((b) => ({ id: b.id, label: b.name }));
+  }
+
   async listSent(mentorId: string): Promise<MentorBroadcastRequestSentItem[]> {
     const rows = await this.prisma.mentorBroadcastRequest.findMany({
       where: {
