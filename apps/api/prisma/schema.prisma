@@ -160,6 +160,8 @@ model MentorBroadcastRequest {
   team        CoachingTeam?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
   menteeId    String?
   mentee      User?                 @relation("MentorBroadcastMenteeTarget", fields: [menteeId], references: [id], onDelete: SetNull)
+  boardId     String?
+  userBoard   UserBoard?            @relation(fields: [boardId], references: [id], onDelete: SetNull)
   targetLabel String
   contextLine String?               @db.Text
   body        String                @db.Text
@@ -169,19 +171,21 @@ model MentorBroadcastRequest {
 
   @@index([mentorId, status, createdAt])
   @@index([menteeId])
+  @@index([boardId])
   @@map("mentor_broadcast_requests")
 }
 
 model UserBoard {
-  id          String           @id @default(cuid())
-  name        String
-  ownerId     String
-  owner       User             @relation("UserBoardsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
-  mentorId    String
-  mentor      User             @relation("UserBoardMentor", fields: [mentorId], references: [id], onDelete: Cascade)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  suggestions UserSuggestion[]
+  id                      String                   @id @default(cuid())
+  name                    String
+  ownerId                 String
+  owner                   User                     @relation("UserBoardsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  mentorId                String
+  mentor                  User                     @relation("UserBoardMentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  suggestions             UserSuggestion[]
+  mentorBroadcastRequests MentorBroadcastRequest[]
 
   @@index([ownerId])
   @@index([mentorId])

@@ -29,6 +29,11 @@ export class CreateMentorBroadcastRequestDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
+  boardId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
   @MaxLength(200)
   targetLabel?: string;
   @IsOptional()

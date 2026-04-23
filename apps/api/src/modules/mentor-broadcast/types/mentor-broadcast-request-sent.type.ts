@@ -8,6 +8,7 @@ export type MentorBroadcastRequestSentItem = {
   scope: MentorBroadcastScope;
   teamId: string | null;
   menteeId: string | null;
+  boardId: string | null;
   targetLabel: string;
   contextLine: string | null;
   body: string;

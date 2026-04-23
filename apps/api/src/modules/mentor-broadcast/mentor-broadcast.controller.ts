@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Query,
@@ -48,7 +49,9 @@ export class MentorBroadcastController {
       return { items };
     }
     if (kind === MENTOR_BROADCAST_TARGET_QUERY_KIND.BOARDS) {
-      return { items: [] };
+      throw new NotImplementedException(
+        "Mentor broadcast targets for boards are not implemented yet.",
+      );
     }
     throw new BadRequestException(
       `Query "kind" must be ${MENTOR_BROADCAST_TARGET_QUERY_KIND.INTERNS} or ${MENTOR_BROADCAST_TARGET_QUERY_KIND.BOARDS}`,

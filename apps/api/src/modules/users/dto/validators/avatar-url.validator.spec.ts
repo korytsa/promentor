@@ -36,18 +36,18 @@ describe("isValidAvatarUrl — http(s) image links", () => {
   });
 });
 
-describe("isDeviceAvatarDataUrl — large payload / sampling branch", () => {
-  it("uses full scan at exactly FULL_BASE64_PAYLOAD_SCAN_BYTES", () => {
+describe("isDeviceAvatarDataUrl — large payload / full scan", () => {
+  it("accepts payload at exactly FULL_BASE64_PAYLOAD_SCAN_BYTES", () => {
     const url = dataUrlWithPayloadLength(FULL_BASE64_PAYLOAD_SCAN_BYTES);
     expect(isDeviceAvatarDataUrl(url)).toBe(true);
   });
 
-  it("uses sampling when payload is one byte above the full-scan limit", () => {
+  it("accepts payload one byte above the former full-scan threshold", () => {
     const url = dataUrlWithPayloadLength(FULL_BASE64_PAYLOAD_SCAN_BYTES + 1);
     expect(isDeviceAvatarDataUrl(url)).toBe(true);
   });
 
-  it("accepts a valid data URL well above 256 KiB (sampling regression)", () => {
+  it("accepts a valid data URL well above 256 KiB", () => {
     const url = dataUrlWithPayloadLength(
       FULL_BASE64_PAYLOAD_SCAN_BYTES + 64 * 1024,
     );
@@ -65,7 +65,7 @@ describe("isDeviceAvatarDataUrl — large payload / sampling branch", () => {
     expect(isDeviceAvatarDataUrl(DATA_PNG_PREFIX + payload)).toBe(false);
   });
 
-  it("rejects a large payload with a non-base64 character in an interior sampled slice", () => {
+  it("rejects a large payload with a non-base64 character in the interior", () => {
     const len = FULL_BASE64_PAYLOAD_SCAN_BYTES + 20_000;
     const before = coreBase64Body(8200);
     const after = coreBase64Body(len - before.length - 1);

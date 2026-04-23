@@ -95,12 +95,11 @@ export class TeamsService {
         joinUi = "your_team";
       } else if (memberOf.has(row.id)) {
         joinUi = "joined";
+      } else if (jr === CoachingTeamJoinRequestStatus.ACCEPTED) {
+        joinUi = "joined";
       } else if (jr === CoachingTeamJoinRequestStatus.PENDING) {
         joinUi = "pending";
-      } else if (
-        jr === CoachingTeamJoinRequestStatus.REJECTED ||
-        jr === CoachingTeamJoinRequestStatus.ACCEPTED
-      ) {
+      } else if (jr === CoachingTeamJoinRequestStatus.REJECTED) {
         joinUi = "declined";
       } else if (role === UserRole.REGULAR_USER) {
         joinUi = "send_request";

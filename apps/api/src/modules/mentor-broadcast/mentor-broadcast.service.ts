@@ -27,6 +27,7 @@ const sentSelect = {
   scope: true,
   teamId: true,
   menteeId: true,
+  boardId: true,
   targetLabel: true,
   contextLine: true,
   body: true,
@@ -40,6 +41,7 @@ type SentRow = {
   scope: MentorBroadcastScope;
   teamId: string | null;
   menteeId: string | null;
+  boardId: string | null;
   targetLabel: string;
   contextLine: string | null;
   body: string;
@@ -61,6 +63,7 @@ function toSentItem(row: SentRow): MentorBroadcastRequestSentItem {
     scope: row.scope,
     teamId: row.teamId,
     menteeId: row.menteeId,
+    boardId: row.boardId,
     targetLabel: row.targetLabel,
     contextLine: row.contextLine,
     body: row.body,
@@ -133,6 +136,10 @@ export class MentorBroadcastService {
       throw new BadRequestException("teamId must not be set for this scope");
     }
 
+    if (dto.boardId?.trim() && dto.scope !== MentorBroadcastScope.BOARD) {
+      throw new BadRequestException("boardId is only valid for BOARD scope");
+    }
+
     if (dto.scope === MentorBroadcastScope.INTERN) {
       if (dto.allInterns === true) {
         if (dto.menteeId) {
@@ -196,17 +203,25 @@ export class MentorBroadcastService {
           "menteeId and allInterns are only for INTERN scope",
         );
       }
-      const label = dto.targetLabel?.trim() ?? "";
-      if (!label) {
+      const boardId = dto.boardId?.trim() ?? "";
+      if (!boardId) {
         throw new BadRequestException(
-          "targetLabel is required for BOARD scope",
+          "boardId is required for BOARD scope (a user board you mentor)",
         );
+      }
+      const board = await this.prisma.userBoard.findFirst({
+        where: { id: boardId, mentorId },
+        select: { id: true, name: true },
+      });
+      if (!board) {
+        throw new NotFoundException("Board not found or not available to you");
       }
       const { body, contextLine } = trimBroadcastText(dto);
       const data: Prisma.MentorBroadcastRequestCreateInput = {
         mentor: { connect: { id: mentorId } },
         scope: MentorBroadcastScope.BOARD,
-        targetLabel: label,
+        userBoard: { connect: { id: board.id } },
+        targetLabel: board.name,
         contextLine,
         body,
       };

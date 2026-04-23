@@ -89,9 +89,26 @@ export class FakePrismaService {
   };
 
   user = {
-    count: async (): Promise<number> => this.users.length,
+    count: async (args?: {
+      where?: { role?: UserRole } | Record<string, never>;
+    }): Promise<number> => {
+      const w = args?.where;
+      const isEmptyWhere =
+        w === undefined ||
+        w === null ||
+        (typeof w === "object" && Object.keys(w).length === 0);
+      if (isEmptyWhere) {
+        return this.users.length;
+      }
+      if (w && "role" in w && w.role !== undefined) {
+        return this.users.filter((u) => u.role === w.role).length;
+      }
+      return this.users.length;
+    },
     findMany: async (args: {
       where?:
+        | { role: UserRole }
+        | Record<string, never>
         | { id: { in: string[] } }
         | {
             id: { not: string };
@@ -141,28 +158,66 @@ export class FakePrismaService {
         }>
     > => {
       const where = args.where;
-      if (!where) {
-        const skip = args.skip ?? 0;
-        const take = args.take ?? this.users.length;
-        const rows = [...this.users].sort((a, b) =>
+      const isEmptyWhere =
+        where === undefined ||
+        where === null ||
+        (typeof where === "object" && Object.keys(where).length === 0);
+
+      const mapFullUser = (user: FakeUser) => ({
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        jobTitle: user.jobTitle ?? null,
+        about: user.about ?? null,
+      });
+
+      const sliceSortedList = (rows: FakeUser[]) => {
+        const sorted = [...rows].sort((a, b) =>
           a.fullName.localeCompare(b.fullName),
         );
-        return rows.slice(skip, skip + take).map((user) => ({
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          avatarUrl: user.avatarUrl,
-          jobTitle: user.jobTitle ?? null,
-          about: user.about ?? null,
-        }));
+        const skip = args.skip ?? 0;
+        const take = args.take ?? sorted.length;
+        return sorted.slice(skip, skip + take).map(mapFullUser);
+      };
+
+      if (isEmptyWhere) {
+        return sliceSortedList(this.users);
       }
-      if ("in" in where.id) {
+
+      if (
+        typeof where === "object" &&
+        "role" in where &&
+        (where as { role?: UserRole }).role !== undefined &&
+        !("id" in where)
+      ) {
+        const role = (where as { role: UserRole }).role;
+        return sliceSortedList(this.users.filter((u) => u.role === role));
+      }
+
+      if (
+        typeof where === "object" &&
+        "id" in where &&
+        where.id &&
+        typeof where.id === "object" &&
+        "in" in where.id
+      ) {
         const ids = new Set(where.id.in);
         return this.users
           .filter((user) => ids.has(user.id))
           .map((user) => ({ id: user.id }));
-      } else {
+      }
+
+      if (
+        typeof where === "object" &&
+        "id" in where &&
+        where.id &&
+        typeof where.id === "object" &&
+        "not" in where.id &&
+        "OR" in where &&
+        Array.isArray((where as { OR: unknown }).OR)
+      ) {
         const searchWhere = where as {
           id: { not: string };
           OR: Array<{
@@ -192,6 +247,8 @@ export class FakePrismaService {
           jobTitle: u.jobTitle ?? null,
         }));
       }
+
+      return sliceSortedList(this.users);
     },
     update: async (args: {
       where: { id: string };
